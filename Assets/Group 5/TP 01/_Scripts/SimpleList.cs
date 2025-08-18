@@ -34,6 +34,26 @@ public class SimpleList<T> : ISimpleList<T>
         _count = 0;
     }
 
+    public SimpleList(IEnumerable<T> collection)
+    {
+        if (collection == null)
+            throw new ArgumentNullException(nameof(collection));
+
+        if (collection is ICollection<T> c)
+        {
+            _list = new T[c.Count];
+            c.CopyTo(_list, 0);
+            _count = c.Count;
+        }
+        else
+        {
+            _count = 0;
+            _list = new T[20];
+            foreach (var item in collection)
+                Add(item);
+        }
+    }
+
     public void Add(T item)
     {
         EnsureCapacity(_count + 1);
@@ -105,9 +125,16 @@ public class SimpleList<T> : ISimpleList<T>
         {
             if (i > 0)
                 sb.Append(", ");
-            sb.Append(_list[i]?.ToString());
+            sb.Append(_list[i]);
         }
         return sb.ToString();
         // return string.Join(", ", _list.Take(_count));
+    }
+
+    public void Sort(IComparer<T> comparer)
+    {
+        comparer ??= Comparer<T>.Default;
+        
+        Array.Sort(_list, 0, _count, comparer); //Sort only the "active" 
     }
 }
