@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using Weapons;
 
 namespace Weapons
@@ -29,14 +30,16 @@ public class Item : IComparable<Item>
     public Weapons.Type Type { get; private set; }
     
     public Rarity Rarity { get; private set; }
+    public Sprite Icon { get; private set; }
 
-    public Item(int id, string name, int price, Weapons.Type type,  Rarity rarity)
+    public Item(int id, string name, int price, Weapons.Type type,  Rarity rarity, Sprite icon)
     {
         ID = id;
         Name = name;
         Price = price;
         Type = type;
         Rarity = rarity;
+        Icon = icon;
     }
 
     public int CompareTo(Item other) => ID.CompareTo(other.ID);

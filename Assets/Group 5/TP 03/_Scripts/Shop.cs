@@ -1,9 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Weapons;
+using TMPro;
 
-public class Shop : Object
+public class Shop : MonoBehaviour
 {
     [SerializeField] private Transform itemContainer;
+    [SerializeField] private GameObject itemPrefab;
+    [SerializeField] private TextMeshProUGUI moneyText;
+    // [SerializeField] private Sprite swordSprite;
+    // [SerializeField] private Sprite bowSprite;
+    // [SerializeField] private Sprite gunSprite;
+    // [SerializeField] private Sprite staffSprite;
     
     private enum SortOption
     {
@@ -13,7 +21,7 @@ public class Shop : Object
         Type,
         Rarity
     }
-    
+
     private Dictionary<int, Item> _shopItems = new Dictionary<int, Item>();
     private Dictionary<int, Item> _playerItems = new Dictionary<int, Item>();
     private int _money = 200;
@@ -21,17 +29,16 @@ public class Shop : Object
 
     private readonly Dictionary<SortOption, IComparer<Item>> _comparers = new Dictionary<SortOption, IComparer<Item>>()
     {
-        { SortOption.ID , Comparer<Item>.Default},
+        {SortOption.ID , Comparer<Item>.Default},
         {SortOption.Name, new Item.NameComparer()},
-        { SortOption.Price, new Item.PriceComparer()},
+        {SortOption.Price, new Item.PriceComparer()},
         {SortOption.Type, new Item.TypeComparer()},
         {SortOption.Rarity, new Item.RarityComparer()}
     };
 
     private void Start()
     {
-        //Initialize shop dictionary with every 
-        UpdateUI();
+        InitializeShop();
     }
 
     public void Buy(Item item)
@@ -41,6 +48,7 @@ public class Shop : Object
         _shopItems.Remove(item.ID);
         _playerItems.Add(item.ID, item);
         _money -= item.Price;
+        UpdateMoney();
         UpdateUI();
     }
 
@@ -49,6 +57,7 @@ public class Shop : Object
         _playerItems.Remove(item.ID);
         _shopItems.Add(item.ID, item);
         _money += item.Price;
+        UpdateMoney();
         UpdateUI();
     }
 
@@ -57,7 +66,21 @@ public class Shop : Object
         SimpleList<Item> items = new SimpleList<Item>();
         items.Sort(comparer);
         return items;
-    } 
+    }
+
+    private void InitializeShop()
+    {
+        foreach (var kvp in ItemDatabase.Items)
+        {
+            _shopItems.Add(kvp.Key, kvp.Value);
+            
+            GameObject uiObj = Instantiate(itemPrefab, itemContainer);
+            ShopItemUI ui = uiObj.GetComponent<ShopItemUI>();
+            ui.Setup(kvp.Value, this);
+        }
+        
+        UpdateUI();
+    }
 
     private void UpdateUI()
     {
@@ -73,23 +96,9 @@ public class Shop : Object
             if (ui != null)
                 ui.transform.SetSiblingIndex(i);
         }
-        
-        // //Destroy old UI
-        // foreach (Transform child in itemContainer)
-        //     Destroy(child.gameObject);
-        //
-        // //Sort items using the currently selected comparer
-        // SimpleList<Item> sortedItems = new SimpleList<Item>(_shopItems.Values);
-        // sortedItems.Sort(_comparers[_currentSortOption]);
-        //
-        // //Rebuild UI
-        // foreach (Item item in sortedItems)
-        // {
-        //     GameObject uiObj = Instantiate(itemPrefab, itemContainer);
-        //     
-        //     
-        // }
     }
+
+    private void UpdateMoney() => moneyText.text = _money.ToString();
 
     private ShopItemUI FindUIForItem(Item item)
     {
@@ -104,15 +113,8 @@ public class Shop : Object
 
     public void OnComparerChanged(int index)
     {
+        if (_currentSortOption == (SortOption)index) return;
         _currentSortOption = (SortOption)index;
         UpdateUI();
-        // IComparer<Item> comparer = index switch
-        // {
-        //     0 => new Item.NameComparer(),
-        //     1 => new Item.PriceComparer(),
-        //     2 => new Item.TypeComparer(),
-        //     3 => new Item.RarityComparer(),
-        //     _ => null
-        // };
     }
 }

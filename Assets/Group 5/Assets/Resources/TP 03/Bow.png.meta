@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: decb64ad842569745be9740ab57abf56
+guid: d8e8da476c7bf6d4a84c095b75258dc3
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -97,7 +97,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Sword_0
+      name: Legendary bow
       rect:
         serializedVersion: 2
         x: 0
@@ -105,20 +105,20 @@ TextureImporter:
         width: 32
         height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: eda994c5a85a65147bc1270925a4a3bc
-      internalID: -968476355
+      spriteID: 1d00a5a4bbf7f4147947405e087062f7
+      internalID: -1582177883
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Sword_1
+      name: Epic bow
       rect:
         serializedVersion: 2
         x: 32
@@ -126,20 +126,20 @@ TextureImporter:
         width: 32
         height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9d5ba0af1d0f2ff4d8bb50f993c40f46
-      internalID: 875734924
+      spriteID: 63223a3a9a331d24d859dbc0c5c033ee
+      internalID: -672503118
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Sword_2
+      name: Uncommon bow
       rect:
         serializedVersion: 2
         x: 64
@@ -147,20 +147,20 @@ TextureImporter:
         width: 32
         height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6f576584ee629cc4babbcc59136b3de0
-      internalID: 1558357774
+      spriteID: 48ba4ac2b9ed44e469c47e97ae45401f
+      internalID: -819166565
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Sword_3
+      name: Common bow
       rect:
         serializedVersion: 2
         x: 96
@@ -168,14 +168,14 @@ TextureImporter:
         width: 32
         height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ffa9f80ea34c2454bb2c5374e5e49c00
-      internalID: -1047622040
+      spriteID: dfd647ff810f3364da7474f02d12fbf6
+      internalID: -1911680206
       vertices: []
       indices: 
       edges: []
@@ -183,7 +183,7 @@ TextureImporter:
     outline: []
     physicsShape: []
     bones: []
-    spriteID: 11a2e6e4954970445b9fc4be96e5cac4
+    spriteID: e86f269906b34a7479acc9024303ccbf
     internalID: 0
     vertices: []
     indices: 
@@ -191,10 +191,10 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Sword_0: -968476355
-      Sword_1: 875734924
-      Sword_2: 1558357774
-      Sword_3: -1047622040
+      Common bow: -1911680206
+      Epic bow: -672503118
+      Legendary bow: -1582177883
+      Uncommon bow: -819166565
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
