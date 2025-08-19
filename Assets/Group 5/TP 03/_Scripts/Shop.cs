@@ -41,15 +41,16 @@ public class Shop : MonoBehaviour
         InitializeShop();
     }
 
-    public void Buy(Item item)
+    public bool Buy(Item item)
     {
-        if (!_shopItems.ContainsValue(item) || _money < item.Price) return;
+        if (!_shopItems.ContainsValue(item) || _money < item.Price) return false;
         
         _shopItems.Remove(item.ID);
         _playerItems.Add(item.ID, item);
         _money -= item.Price;
         UpdateMoney();
         UpdateUI();
+        return true;
     }
 
     public void Sell(Item item)

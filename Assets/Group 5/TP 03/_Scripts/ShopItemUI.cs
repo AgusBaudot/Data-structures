@@ -12,6 +12,7 @@ public class ShopItemUI : MonoBehaviour
     private Item _item;
     private Shop _shop;
     private bool _purchased;
+    private Sprite _soldSprite;
 
     public void Setup(Item item, Shop shop)
     {
@@ -29,6 +30,8 @@ public class ShopItemUI : MonoBehaviour
         
         _nameText.text = item.Name;
         _priceText.text = item.Price.ToString();
+
+        _soldSprite = ItemDatabase.SoldItems[item.Type];
         
         _buyButton.onClick.RemoveAllListeners();
         _buyButton.onClick.AddListener(() => Purchased(_item));
@@ -38,16 +41,18 @@ public class ShopItemUI : MonoBehaviour
 
     private void Purchased(Item item)
     {
-        _purchased = !_purchased;
-        if (_purchased)
+        if (!_purchased)
         {
+            if (!_shop.Buy(item)) return;
             _buyButton.GetComponentInChildren<TextMeshProUGUI>().text = "Sell!";
-            _shop.Buy(item);
+            _icon.sprite = _soldSprite;
         }
         else
         {
             _buyButton.GetComponentInChildren<TextMeshProUGUI>().text = "Buy!";
+            _icon.sprite = item.Icon;
             _shop.Sell(item);
         }
+        _purchased = !_purchased;
     }
 }

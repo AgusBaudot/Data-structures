@@ -24,24 +24,36 @@ public static class ItemDatabase
         {16, new Item(16, "Legendary staff", 200, Type.Staff, Rarity.Legendary, LoadIcon("Legendary staff", Type.Staff))},
     };
 
+    public static readonly Dictionary<Type, Sprite> SoldItems = new()
+    {
+        { Type.Sword, LoadSoldSprite("Sword")},
+        { Type.Bow, LoadSoldSprite("Bow")},
+        { Type.Gun, LoadSoldSprite("Gun")},
+        { Type.Staff, LoadSoldSprite("Staff")}
+    };
+
     private static Sprite LoadIcon(string spriteName, Type type)
     {
-        Sprite[] sprites = new Sprite[16];
-        switch (type)
+        Sprite[] sprites = type switch
         {
-            case Type.Sword:
-                sprites = Resources.LoadAll<Sprite>("TP 03/Sword");
-                break;
-            case Type.Bow:
-                sprites = Resources.LoadAll<Sprite>("TP 03/Bow");
-                break;
-            case Type.Staff:
-                sprites = Resources.LoadAll<Sprite>("TP 03/Staff");
-                break;  
-            case Type.Gun:
-                sprites = Resources.LoadAll<Sprite>("TP 03/Gun");
-                break;
+            Type.Sword => Resources.LoadAll<Sprite>("TP 03/Sword"),
+            Type.Bow => Resources.LoadAll<Sprite>("TP 03/Bow"),
+            Type.Staff => Resources.LoadAll<Sprite>("TP 03/Staff"),
+            Type.Gun => Resources.LoadAll<Sprite>("TP 03/Gun"),
+            _ => new Sprite[16]
+        };
+        foreach (var sprite in sprites)
+        {
+            if (sprite.name == spriteName)
+                return sprite;
         }
+        Debug.LogWarning($"Sprite {spriteName} not found in Assets.");
+        return null;
+    }
+
+    private static Sprite LoadSoldSprite(string spriteName)
+    {
+        Sprite[] sprites = Resources.LoadAll<Sprite>("TP 03/Sold items");
         foreach (var sprite in sprites)
         {
             if (sprite.name == spriteName)

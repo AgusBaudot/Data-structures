@@ -97,7 +97,6 @@ public class Test : MonoBehaviour
         var sorted = new List<int>(_linkedList);
         sorted.Sort();
         _linkedList = new LinkedList<int>(sorted);
-        Debug.Log($"My list: {_myList} ||  LinkedList: {_linkedList}");
         Debug.Assert(Compare(_myList, _linkedList));
 
         // === Clear ===
