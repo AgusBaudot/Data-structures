@@ -340,22 +340,22 @@ public class MyList<T> : IDisposable, IEnumerable<T> where T : IComparable<T>
         return slow;
     }
     
-    public void DebugPrintLinks()
-    {
-        Debug.Log("Debugging linked list structure:");
-        var current = _head;
-        int index = 0;
-
-        while (current != null)
-        {
-            string prevData = current.Previous != null ? current.Previous.Data.ToString() : "null";
-            string nextData = current.Next != null ? current.Next.Data.ToString() : "null";
-            Debug.Log($"Index {index}: Data={current.Data}, Prev={prevData}, Next={nextData}");
-            current = current.Next;
-            index++;
-        }
-
-        Debug.Log($"Head: {_head.Data}, Tail: {_tail.Data}, Count: {_count}");
-    }
+    // public void DebugPrintLinks()
+    // {
+    //     Debug.Log("Debugging linked list structure:");
+    //     var current = _head;
+    //     int index = 0;
+    //
+    //     while (current != null)
+    //     {
+    //         string prevData = current.Previous != null ? current.Previous.Data.ToString() : "null";
+    //         string nextData = current.Next != null ? current.Next.Data.ToString() : "null";
+    //         Debug.Log($"Index {index}: Data={current.Data}, Prev={prevData}, Next={nextData}");
+    //         current = current.Next;
+    //         index++;
+    //     }
+    //
+    //     Debug.Log($"Head: {_head.Data}, Tail: {_tail.Data}, Count: {_count}");
+    // }
 
 }
