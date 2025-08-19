@@ -9,10 +9,10 @@ EditorBuildSettings:
     path: Assets/Group 5/TP 01/Scenes/TP 01 Simple list.unity
     guid: 4ec27372c84efcd42bb1c99e9bc66ea6
   - enabled: 1
-    path: Assets/Group 5/TP 02/Scenes/TP 02 Linked list.unity
+    path: Assets/Group 5/TP 02/Exercise 01/Scenes/TP 02 Linked list.unity
     guid: 4132b68feb6ae074aa404df630dea8f5
   - enabled: 1
-    path: Assets/Group 5/TP 03/Scenes/TP 03 Shop.unity
+    path: Assets/Group 5/TP 02/Exercise 02/Scenes/TP 02 Shop.unity
     guid: a488b5f98673a184eb2fcd0ea33f8df8
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

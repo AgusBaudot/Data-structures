@@ -1,19 +1,18 @@
+using MyLinkedList;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using MyLinkedList;
-using UnityEngine;
 
 public class MyList<T> : IDisposable, IEnumerable<T> where T : IComparable<T>
 {
     private MyNode<T> _head;
     private MyNode<T> _tail;
     private int _count;
-    
+
     public MyNode<T> First => _head;
     public MyNode<T> Last => _tail;
     public int Count => _count;
-    
+
     public T this[int index]
     {
         get
@@ -27,20 +26,19 @@ public class MyList<T> : IDisposable, IEnumerable<T> where T : IComparable<T>
 
             return current.Data;
         }
+
         
-        // Do we really want a setter?
-        //
-        //  set
-        //  {
-        //      if (index < 0 || index >= _count)
-        //          throw new ArgumentOutOfRangeException(nameof(index));
-        //
-        //      var current = _head;
-        //      for (int i = 0; i < index; i++)
-        //          current = current.Next;
-        //      
-        //      current.Data = value;
-        //  }
+        set
+        {
+            if (index < 0 || index >= _count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            var current = _head;
+            for (int i = 0; i < index; i++)
+                current = current.Next;
+
+            current.SetData(value);
+        }
     }
 
     public MyList(MyNode<T> root = null)
@@ -56,7 +54,7 @@ public class MyList<T> : IDisposable, IEnumerable<T> where T : IComparable<T>
         if (_tail != null)
             _tail.SetNext(newNode);
 
-        else 
+        else
             _head = newNode;
 
         _tail = newNode;
@@ -89,10 +87,10 @@ public class MyList<T> : IDisposable, IEnumerable<T> where T : IComparable<T>
             _tail = values._tail;
             _count += values.Count;
         }
-        
+
         values.SemiDispose();
     }
-    
+
     public bool Remove(T value)
     {
         if (IsEmpty()) return false;
@@ -106,7 +104,7 @@ public class MyList<T> : IDisposable, IEnumerable<T> where T : IComparable<T>
                 if (current.Previous != null)
                     current.Previous.SetNext(current.Next);
                 else _head = current.Next;
-                
+
                 if (current.Next != null)
                     current.Next.SetPrevious(current.Previous);
                 else
@@ -163,8 +161,8 @@ public class MyList<T> : IDisposable, IEnumerable<T> where T : IComparable<T>
             _count++;
             return;
         }
-        
-		MyNode<T> next = GetNodeFromIndex(index);
+
+        MyNode<T> next = GetNodeFromIndex(index);
         MyNode<T> current = new MyNode<T>(value, next, next.Previous);
         next.SetPrevious(current);
         current.Previous.SetNext(current);
@@ -182,7 +180,7 @@ public class MyList<T> : IDisposable, IEnumerable<T> where T : IComparable<T>
         {
             var current = First;
             for (int i = 0; i < index; i++)
-                current = current.Next; 
+                current = current.Next;
             return current;
         }
         else
@@ -193,26 +191,7 @@ public class MyList<T> : IDisposable, IEnumerable<T> where T : IComparable<T>
             return current;
         }
     }
-    
-    // private int GetIndexFromData(T value)
-    // {
-    //     if (IsEmpty())
-    //         throw new InvalidOperationException("Cannot remove a value from an empty list");
-    //     
-    //     MyNode<T> current = _head;
-    //     int counter = 0;
-    //
-    //     while (current != null)
-    //     {
-    //         if (current.Data.Equals(value))
-    //             return counter;
-    //         current = current.Next;
-    //         counter++;
-    //     }
-    //
-    //     return -1;
-    // }
-    
+
     public void SemiDispose()
     {
         _head = null;
@@ -227,18 +206,18 @@ public class MyList<T> : IDisposable, IEnumerable<T> where T : IComparable<T>
         while (current != null)
         {
             MyNode<T> next = current.Next;
-            
+
             //Break links:
             current.SetNext(null);
             current.SetPrevious(null);
-            
+
             //If node's data holds unmanaged resources, dispose them
             if (current.Data is IDisposable disposable)
                 disposable.Dispose();
 
             current = next;
         }
-        
+
         _head = null;
         _tail = null;
         _count = 0;
@@ -267,7 +246,7 @@ public class MyList<T> : IDisposable, IEnumerable<T> where T : IComparable<T>
     public void Sort(IComparer<T> comparer = null)
     {
         if (_count <= 1) return;
-        
+
         //Ensures fallback to default comparison if no custom comparer is provided.
         comparer ??= Comparer<T>.Default;
 
@@ -287,16 +266,16 @@ public class MyList<T> : IDisposable, IEnumerable<T> where T : IComparable<T>
     {
         if (head == null || head.Next == null)
             return head;
-        
+
         //Split list into halves
         MyNode<T> middle = GetMiddle(head);
         MyNode<T> nextOfMiddle = middle.Next;
         middle.SetNext(null);
         if (nextOfMiddle != null) nextOfMiddle.SetPrevious(null);
-        
+
         MyNode<T> left = MergeSort(head, comparer);
         MyNode<T> right = MergeSort(nextOfMiddle, comparer);
-        
+
         return SortedMerge(left, right, comparer);
     }
 
@@ -316,7 +295,7 @@ public class MyList<T> : IDisposable, IEnumerable<T> where T : IComparable<T>
         result.SetNext(SortedMerge(result.Equals(left) ? left.Next : left, result.Equals(left) ? right : right.Next, comparer));
 
         //Update references.
-        if (result.Next != null) 
+        if (result.Next != null)
             result.Next.SetPrevious(result);
         // result.SetPrevious(null);
 
@@ -327,10 +306,10 @@ public class MyList<T> : IDisposable, IEnumerable<T> where T : IComparable<T>
     private MyNode<T> GetMiddle(MyNode<T> head)
     {
         if (head == null) return null;
-        
+
         MyNode<T> slow = head;
         MyNode<T> fast = head;
-        
+
         while (fast.Next != null && fast.Next.Next != null)
         {
             slow = slow.Next;
@@ -339,23 +318,7 @@ public class MyList<T> : IDisposable, IEnumerable<T> where T : IComparable<T>
 
         return slow;
     }
-    
-    // public void DebugPrintLinks()
-    // {
-    //     Debug.Log("Debugging linked list structure:");
-    //     var current = _head;
-    //     int index = 0;
-    //
-    //     while (current != null)
-    //     {
-    //         string prevData = current.Previous != null ? current.Previous.Data.ToString() : "null";
-    //         string nextData = current.Next != null ? current.Next.Data.ToString() : "null";
-    //         Debug.Log($"Index {index}: Data={current.Data}, Prev={prevData}, Next={nextData}");
-    //         current = current.Next;
-    //         index++;
-    //     }
-    //
-    //     Debug.Log($"Head: {_head.Data}, Tail: {_tail.Data}, Count: {_count}");
-    // }
+
+    public T[] ToArray() => ToArray();
 
 }

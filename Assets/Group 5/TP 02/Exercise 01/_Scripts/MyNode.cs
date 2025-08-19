@@ -18,6 +18,7 @@ namespace MyLinkedList
         
         public void SetNext(MyNode<T> next) => Next = next;
         public void SetPrevious(MyNode<T> previous) => Previous = previous;
+        public void SetData(T data) => Data = data;
         
 
         public override string ToString() => $"Data: {Data}";

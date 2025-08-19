@@ -8,10 +8,6 @@ public class Shop : MonoBehaviour
     [SerializeField] private Transform itemContainer;
     [SerializeField] private GameObject itemPrefab;
     [SerializeField] private TextMeshProUGUI moneyText;
-    // [SerializeField] private Sprite swordSprite;
-    // [SerializeField] private Sprite bowSprite;
-    // [SerializeField] private Sprite gunSprite;
-    // [SerializeField] private Sprite staffSprite;
     
     private enum SortOption
     {

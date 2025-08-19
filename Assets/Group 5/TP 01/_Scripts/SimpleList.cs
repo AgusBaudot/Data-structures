@@ -1,8 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-public class SimpleList<T> : ISimpleList<T>
+public class SimpleList<T> : ISimpleList<T>, IEnumerable<T>
 {
     private T[] _list;
     private int _count;
@@ -26,7 +27,7 @@ public class SimpleList<T> : ISimpleList<T>
     public int Count => _count;
 
 
-    public SimpleList() : this(20) {}
+    public SimpleList() : this(20) { }
 
     public SimpleList(int capacity)
     {
@@ -98,7 +99,7 @@ public class SimpleList<T> : ISimpleList<T>
         {
             _list[i] = default;
         }
-        _count = 0; 
+        _count = 0;
     }
 
     private void EnsureCapacity(int min)
@@ -119,7 +120,7 @@ public class SimpleList<T> : ISimpleList<T>
     {
         if (_count == 0)
             return string.Empty;
-        
+
         System.Text.StringBuilder sb = new System.Text.StringBuilder();
         for (int i = 0; i < _count; i++)
         {
@@ -134,7 +135,22 @@ public class SimpleList<T> : ISimpleList<T>
     public void Sort(IComparer<T> comparer)
     {
         comparer ??= Comparer<T>.Default;
-        
+
         Array.Sort(_list, 0, _count, comparer); //Sort only the "active" 
+    }
+
+    public T[] ToArray() => _list.ToArray();
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        foreach (T item in _list)
+        {
+            yield return item;
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }

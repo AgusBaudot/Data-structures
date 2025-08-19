@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Test : MonoBehaviour
@@ -8,12 +9,20 @@ public class Test : MonoBehaviour
 
     private LinkedList<int> _linkedList = new LinkedList<int>();
     private MyList<int>  _myList = new MyList<int>();
+
+    private MyQueue<int> _myQueue = new MyQueue<int>();
+    private Queue<int> _queue = new Queue<int>();
+
+    private MyStack<int> _myStack = new MyStack<int>();
+    private Stack<int> _stack = new Stack<int>();
     
     
     private void Start()
     {
         //ArrayListTest();
-        LinkedListTest();
+        //LinkedListTest();
+        //QueueTest();
+        StackTest();
     }
 
     private void ArrayListTest()
@@ -105,8 +114,66 @@ public class Test : MonoBehaviour
         Debug.Assert(Compare(_myList, _linkedList));
     }
 
+    private void QueueTest()
+    {
+        _myQueue.Enqueue(10);
+        _queue.Enqueue(10);
+        Debug.Assert(CompareQueues(_myQueue, _queue));
+
+        _myQueue.Enqueue(20);
+        _queue.Enqueue(20);
+        Debug.Assert(CompareQueues(_myQueue, _queue));
+
+        int myPeek = _myQueue.Peek();
+        int sysPeek = _queue.Peek();
+        Debug.Assert(myPeek == sysPeek);
+
+        int myDeq = _myQueue.Dequeue();
+        int sysDeq = _queue.Dequeue();
+        Debug.Assert(myDeq == sysDeq && CompareQueues(_myQueue, _queue));
+
+        _myQueue.Enqueue(30);
+        _myQueue.Enqueue(40);
+        _queue.Enqueue(30);
+        _queue.Enqueue(40);
+        Debug.Assert(CompareQueues(_myQueue, _queue));
+
+        _myQueue.Clear();
+        _queue.Clear();
+        Debug.Assert(CompareQueues(_myQueue, _queue));
+    }
+
+    private void StackTest()
+    {
+        _myStack.Push(5);
+        _stack.Push(5);
+        Debug.Assert(CompareStacks(_myStack, _stack));
+
+        _myStack.Push(10);
+        _stack.Push(10);
+        Debug.Assert(CompareStacks(_myStack, _stack));
+
+        int myPeek = _myStack.Peek();
+        int sysPeek = _stack.Peek();
+        Debug.Assert(myPeek == sysPeek);
+
+        int myPop = _myStack.Pop();
+        int sysPop = _stack.Pop();
+        Debug.Assert(myPop == sysPop && CompareStacks(_myStack, _stack));
+
+        _myStack.Push(15);
+        _myStack.Push(20);
+        _stack.Push(15);
+        _stack.Push(20);
+        Debug.Assert(CompareStacks(_myStack, _stack));
+
+        _myStack.Clear();
+        _stack.Clear();
+        Debug.Assert(CompareStacks(_myStack, _stack));
+    }
+
     
-    static bool Compare(MyList<int> my, LinkedList<int> sys)
+    private bool Compare(MyList<int> my, LinkedList<int> sys)
     {
         if (my.Count != sys.Count)
             return false;
@@ -122,12 +189,22 @@ public class Test : MonoBehaviour
     }
 
     
-    static LinkedListNode<int> NodeAt(LinkedList<int> list, int index)
+    private LinkedListNode<int> NodeAt(LinkedList<int> list, int index)
     {
         var node = list.First;
         for (int i = 0; i < index; i++)
             node = node.Next;
         return node;
 
+    }
+
+    private bool CompareQueues(MyQueue<int> myQueue, Queue<int> systemQueue)
+    {
+        return myQueue.SequenceEqual(systemQueue);
+    }
+
+    private bool CompareStacks(MyStack<int> myStack, Stack<int> systemStack)
+    {
+        return myStack.SequenceEqual(systemStack.Reverse());
     }
 }
