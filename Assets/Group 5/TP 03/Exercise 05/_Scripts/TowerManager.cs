@@ -34,24 +34,31 @@ public class TowerManager : MonoBehaviour
     public void UndoLastMove()
     {
         if (_moveHistory.Count == 0) return;
-
+        
         Move last = _moveHistory.Pop();
 
-        if (last.Disk == null || last.Disk.Tower == null)
+        if (last.Disk == null)
         {
             Debug.LogWarning("undo desync: disk or its tower is null");
+            return;
+        }
+
+        if (last.From == null || last.To == null)
+        {
+            Debug.LogWarning("Undo desync: one of the towers is null");
             return;
         }
 
         if (!ReferenceEquals(last.Disk.Tower, last.To))
         {
             Debug.LogWarning("Undo desync: disk in not on the expected tower.");
+            return;
         }
 
-        if (last.From.TryAdd(last.Disk))
+        bool success = last.From.TryAdd(last.Disk);
+        if (!success)
         {
-            last.To.RemoveDisk();
-            Debug.Log($"Undo: {last.Disk.name} moved back from {last.To.name} to {last.From.name}");
+            Debug.LogWarning("Undo failed: reverse move invalid (disk not on top or size rule");
         }
     }
 }

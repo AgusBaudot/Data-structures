@@ -10,4 +10,9 @@ public struct Move
         From = from;
         To = to;
     }
+
+    public override string ToString()
+    {
+        return $"Disk: {Disk}, From: {From}, To: {To}";
+    }
 }
