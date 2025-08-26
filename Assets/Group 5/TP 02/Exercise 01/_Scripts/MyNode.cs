@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MyLinkedList
 {
-    public class MyNode<T> : IComparer<MyNode<T>>, IEquatable<MyNode<T>>, IDisposable where T : IComparable<T>
+    public class MyNode<T> : IComparer<MyNode<T>>, IEquatable<MyNode<T>>, IDisposable //where T : IComparable<T>
     {
         public MyNode<T> Next { get; private set; }
         public MyNode<T> Previous { get; private set; }
@@ -28,7 +28,11 @@ namespace MyLinkedList
             if (x == null && y == null) return 0;
             if (x == null) return -1;
             if (y == null) return 1;
-            return x.Data.CompareTo(y.Data);
+            // return x.Data.CompareTo(y.Data); T doesn't need to implement IComparable
+            if (x.Data is IComparable comparableX && y.Data is IComparable comparableY)
+                return comparableX.CompareTo(comparableY);
+
+            throw new InvalidOperationException($"TYpe {typeof(T)} is not comparable.");
         }
 
         public bool Equals(MyNode<T> other)

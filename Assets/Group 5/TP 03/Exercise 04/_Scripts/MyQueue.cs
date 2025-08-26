@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class MyQueue<T> : IEnumerable<T> where T : IComparable<T>
+public class MyQueue<T> : IEnumerable<T> //where T : IComparable<T>
 {
     public int Count => _list.Count;
 
@@ -13,6 +13,13 @@ public class MyQueue<T> : IEnumerable<T> where T : IComparable<T>
     {
         _list = new MyList<T>();
     }
+
+    public MyQueue(IEnumerable<T> collection)
+    {
+        _list = new MyList<T>(collection);
+    }
+
+    public MyQueue(int capacity) : base() { }
 
     public void Enqueue(T item)
     {

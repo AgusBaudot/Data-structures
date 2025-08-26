@@ -1,8 +1,57 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class TowerManager : MonoBehaviour
 {
+    private Disk _currentDisk;
+    private bool _hasSelectedDisk;
+    private MyStack<Move> _moveHistory = new MyStack<Move>();
+    
+    public void SelectDisk(GameObject disk)
+    {
+        //When a disk is selected, store it into a private variable and turn a bool on.
+        _currentDisk = disk.GetComponent<Disk>();
+        _hasSelectedDisk = true;
+    }
 
+    public void SelectedTower(GameObject tower)
+    {
+        //If player doesn't have a disk selected, exit. Otherwise, move disk to selected tower if applicable.
+        if (!_hasSelectedDisk) return;
+        Tower from = _currentDisk.Tower;
+        if (tower.GetComponent<Tower>().TryAdd(_currentDisk))
+        {
+            RegisterMove(from, tower.GetComponent<Tower>(), _currentDisk);
+            _currentDisk = null;
+            _hasSelectedDisk = false;
+        }
+    }
+
+    private void RegisterMove(Tower from, Tower to, Disk disk)
+    {
+        _moveHistory.Push(new Move(disk, from, to));
+    }
+
+    public void UndoLastMove()
+    {
+        if (_moveHistory.Count == 0) return;
+
+        Move last = _moveHistory.Pop();
+
+        if (last.Disk == null || last.Disk.Tower == null)
+        {
+            Debug.LogWarning("undo desync: disk or its tower is null");
+            return;
+        }
+
+        if (!ReferenceEquals(last.Disk.Tower, last.To))
+        {
+            Debug.LogWarning("Undo desync: disk in not on the expected tower.");
+        }
+
+        if (last.From.TryAdd(last.Disk))
+        {
+            last.To.RemoveDisk();
+            Debug.Log($"Undo: {last.Disk.name} moved back from {last.To.name} to {last.From.name}");
+        }
+    }
 }

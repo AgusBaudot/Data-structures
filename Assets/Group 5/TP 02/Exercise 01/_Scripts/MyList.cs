@@ -3,7 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class MyList<T> : IDisposable, IEnumerable<T> where T : IComparable<T>
+public class MyList<T> : IDisposable, IEnumerable<T> //where T : IComparable<T>
 {
     private MyNode<T> _head;
     private MyNode<T> _tail;
@@ -45,6 +45,17 @@ public class MyList<T> : IDisposable, IEnumerable<T> where T : IComparable<T>
     {
         _head = _tail = root;
         _count = root != null ? 1 : 0;
+    }
+
+    public MyList(IEnumerable<T> collection)
+    {
+        if (collection == null)
+            throw new ArgumentNullException(nameof(collection));
+
+        foreach (var item in collection)
+        {
+            Add(item);
+        }
     }
 
     public void Add(T value)
