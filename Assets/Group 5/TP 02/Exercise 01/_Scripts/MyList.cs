@@ -37,7 +37,7 @@ public class MyList<T> : IDisposable, IEnumerable<T> //where T : IComparable<T>
             for (int i = 0; i < index; i++)
                 current = current.Next;
 
-            current.SetData(value);
+            current.Data = value;
         }
     }
 
@@ -328,6 +328,61 @@ public class MyList<T> : IDisposable, IEnumerable<T> //where T : IComparable<T>
         }
 
         return slow;
+    }
+
+    public void BubbleSort(IComparer<T> comparer = null)
+    {
+        if (_count <= 1) return;
+
+        comparer ??= Comparer<T>.Default;
+
+        bool swapped;
+        do //At least check list once to see if it's ordered.
+        {
+            swapped = false; //Set swapped value every iteration.
+            MyNode<T> current = _head; //Select head to start over.
+
+            while (current != null && current.Next != null) //Iterate the list again
+            {
+                //Swap them if they are out of order
+                if (comparer.Compare(current.Data, current.Next.Data) > 0)
+                {
+                    (current.Data, current.Next.Data) = (current.Next.Data, current.Data);
+                    swapped = true;
+                }
+
+                current = current.Next;
+            }
+        } while (swapped); //Keep doing while swaps are being made (list is being ordered).
+    }
+
+    public void SelectionSort(IComparer<T> comparer = null)
+    {
+        if (_count <= 1) return;
+
+        comparer ??= Comparer<T>.Default;
+        MyNode<T> current = _head;
+
+        while (current != null) //Iterate the linked list
+        {
+            MyNode<T> minNode = current;
+            MyNode<T> runner = current.Next;
+            
+            //Find min in the remainder of list.
+            while (runner != null)
+            {
+                if (comparer.Compare(runner.Data, minNode.Data) < 0)
+                    minNode = runner;
+
+                runner = runner.Next;
+            }
+            
+            //Swap data
+            if (!ReferenceEquals(minNode, current))
+                (current.Data, minNode.Data) = (minNode.Data,  current.Data);
+            
+            current = current.Next;
+        }
     }
 
     public T[] ToArray() => ToArray();

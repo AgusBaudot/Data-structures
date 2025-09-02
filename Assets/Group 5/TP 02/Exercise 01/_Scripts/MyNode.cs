@@ -7,7 +7,7 @@ namespace MyLinkedList
     {
         public MyNode<T> Next { get; private set; }
         public MyNode<T> Previous { get; private set; }
-        public T Data { get; private set; }
+        public T Data;
         
         public MyNode(T data, MyNode<T> next = null, MyNode<T> previous = null)
         {
@@ -18,7 +18,7 @@ namespace MyLinkedList
         
         public void SetNext(MyNode<T> next) => Next = next;
         public void SetPrevious(MyNode<T> previous) => Previous = previous;
-        public void SetData(T data) => Data = data;
+        // public void SetData(T data) => Data = data;
         
 
         public override string ToString() => $"Data: {Data}";

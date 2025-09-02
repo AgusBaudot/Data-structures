@@ -138,15 +138,51 @@ public class SimpleList<T> : ISimpleList<T>, IEnumerable<T>
 
         Array.Sort(_list, 0, _count, comparer); //Sort only the "active" 
     }
+    
+    public void BubbleSort(IComparer<T> comparer = null)
+    {
+        comparer ??= Comparer<T>.Default;
+
+        for (int i = 0; i < _count - 1; i++) //Iterate through the list except the last element.
+        {
+            bool swapped = false; //Reset swapped value
+            for (int j = 0; j < _count - i - 1; j++) //Iterate through the list except the last element and the amount of elements already correctly sorted.
+            {
+                if (comparer.Compare(_list[j], _list[j + 1]) > 0) //Compare current element with next (this is why we don't iterate through the last one).
+                {
+                    //Swap if necessary
+                    (_list[j], _list[j + 1]) = (_list[j + 1], _list[j]);
+                    swapped = true;
+                }
+            }
+            if (!swapped) break; // optimization: stop early if already sorted
+        }
+    }
+    
+    public void SelectionSort(IComparer<T> comparer = null)
+    {
+        comparer ??= Comparer<T>.Default;
+
+        for (int i = 0; i < _count - 1; i++) //Iterate through the list except the last element.
+        {
+            int minIndex = i; //Set min index to start as default first element.
+            for (int j = i + 1; j < _count; j++) //Iterate the list from i onwards.
+            {
+                if (comparer.Compare(_list[j], _list[minIndex]) < 0) //If current element is less than our stored minIndex:
+                    minIndex = j; //We have a new minIndex!
+            }
+
+            if (minIndex != i) //If the minIndex is not the index we are iterating on, swap them.
+                (_list[i], _list[minIndex]) = (_list[minIndex], _list[i]);
+        }
+    }
 
     public T[] ToArray() => _list.ToArray();
 
     public IEnumerator<T> GetEnumerator()
     {
-        foreach (T item in _list)
-        {
-            yield return item;
-        }
+        for (int i = 0; i < _count; i++)
+            yield return _list[i];
     }
 
     IEnumerator IEnumerable.GetEnumerator()
