@@ -9,13 +9,14 @@ public class ShopItemUI : MonoBehaviour
     private Image _icon;
     private Button _buyButton;
 
-    private Item _item;
+    private ItemSO _item;
     private Shop _shop;
     private bool _purchased;
     private Sprite _soldSprite;
 
-    public void Setup(Item item, Shop shop)
+    public void Setup(ItemSO item, Shop shop)
     {
+        Debug.Log("Setup");
         #region Cache references
         _nameText = transform.GetChild(1).gameObject.GetComponent<TextMeshProUGUI>();
         _priceText =  transform.GetChild(2).gameObject.GetComponent<TextMeshProUGUI>();
@@ -26,33 +27,49 @@ public class ShopItemUI : MonoBehaviour
         _item = item;
         _shop = shop;
 
-        _icon.sprite = item.Icon;
         
         _nameText.text = item.Name;
         _priceText.text = item.Price.ToString();
+        _icon.sprite = item.Icon;
 
-        _soldSprite = ItemDatabase.SoldItems[item.Type];
+        //_soldSprite = ItemSODatabase.SoldItemSOs[item.Type];
         
         _buyButton.onClick.RemoveAllListeners();
-        _buyButton.onClick.AddListener(() => Purchased(_item));
+        _buyButton.onClick.AddListener(() => OnBuyClicked());
+    }
+
+    private void OnBuyClicked()
+    {
+        if (!_purchased)
+        {
+            if (!_shop.Buy(_item)) return;
+            _buyButton.GetComponentInChildren<TextMeshProUGUI>().text = "Sell!";
+        }
+        else
+        {
+            _shop.Sell(_item);
+            _buyButton.GetComponentInChildren<TextMeshProUGUI>().text = "Buy!";
+        }
+
+        _purchased = !_purchased;
     }
     
     public int ItemID => _item.ID;
 
-    private void Purchased(Item item)
-    {
-        if (!_purchased)
-        {
-            if (!_shop.Buy(item)) return;
-            _buyButton.GetComponentInChildren<TextMeshProUGUI>().text = "Sell!";
-            _icon.sprite = _soldSprite;
-        }
-        else
-        {
-            _buyButton.GetComponentInChildren<TextMeshProUGUI>().text = "Buy!";
-            _icon.sprite = item.Icon;
-            _shop.Sell(item);
-        }
-        _purchased = !_purchased;
-    }
+    //private void Purchased(ItemSO ItemSO)
+    //{
+    //    if (!_purchased)
+    //    {
+    //        if (!_shop.Buy(ItemSO)) return;
+    //        _buyButton.GetComponentInChildren<TextMeshProUGUI>().text = "Sell!";
+    //        _icon.sprite = _soldSprite;
+    //    }
+    //    else
+    //    {
+    //        _buyButton.GetComponentInChildren<TextMeshProUGUI>().text = "Buy!";
+    //        _icon.sprite = ItemSO.Icon;
+    //        _shop.Sell(ItemSO);
+    //    }
+    //    _purchased = !_purchased;
+    //}
 }

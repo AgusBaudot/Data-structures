@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Mission")]
+[CreateAssetMenu(menuName = "ScriptableObject/Mission")]
 public class MissionSO : ScriptableObject
 {
     public string title;

@@ -1,35 +1,29 @@
+using Sortings;
 using System.Collections.Generic;
-using UnityEngine;
-using Weapons;
 using TMPro;
+using UnityEngine;
+using static Comparers;
 
 public class Shop : MonoBehaviour
 {
     [SerializeField] private Transform itemContainer;
-    [SerializeField] private GameObject itemPrefab;
+    [SerializeField] private ShopItemUI itemPrefab;
     [SerializeField] private TextMeshProUGUI moneyText;
-    
-    private enum SortOption
-    {
-        ID,
-        Name, 
-        Price, 
-        Type,
-        Rarity
-    }
+    [SerializeField] private ItemListSO itemDataBase;
 
-    private Dictionary<int, Item> _shopItems = new Dictionary<int, Item>();
-    private Dictionary<int, Item> _playerItems = new Dictionary<int, Item>();
+    private Dictionary<int, int> _shopInventory = new();
+    private Dictionary<int, int> _playerInventory = new();
+    private Dictionary<int, ShopItemUI> _itemUIMap = new();
     private int _money = 200;
     private SortOption _currentSortOption = SortOption.ID;
 
-    private readonly Dictionary<SortOption, IComparer<Item>> _comparers = new Dictionary<SortOption, IComparer<Item>>()
+    private readonly Dictionary<SortOption, IComparer<ItemSO>> _comparers = new()
     {
-        {SortOption.ID , Comparer<Item>.Default},
-        {SortOption.Name, new Item.NameComparer()},
-        {SortOption.Price, new Item.PriceComparer()},
-        {SortOption.Type, new Item.TypeComparer()},
-        {SortOption.Rarity, new Item.RarityComparer()}
+        { SortOption.ID, ItemSOComparers.ID },
+        { SortOption.Name, ItemSOComparers.Name },
+        { SortOption.Price, ItemSOComparers.Price },
+        { SortOption.Type, ItemSOComparers.Type },
+        { SortOption.Rarity, ItemSOComparers.Rarity },
     };
 
     private void Start()
@@ -37,74 +31,137 @@ public class Shop : MonoBehaviour
         InitializeShop();
     }
 
-    public bool Buy(Item item)
+    public SimpleList<ItemSO> GetItemSOsSorted(IComparer<ItemSO> comparer)
     {
-        if (!_shopItems.ContainsValue(item) || _money < item.Price) return false;
-        
-        _shopItems.Remove(item.ID);
-        _playerItems.Add(item.ID, item);
-        _money -= item.Price;
-        UpdateMoney();
-        UpdateUI();
-        return true;
-    }
-
-    public void Sell(Item item)
-    {
-        _playerItems.Remove(item.ID);
-        _shopItems.Add(item.ID, item);
-        _money += item.Price;
-        UpdateMoney();
-        UpdateUI();
-    }
-
-    public SimpleList<Item> GetItemsSorted(IComparer<Item> comparer)
-    {
-        SimpleList<Item> items = new SimpleList<Item>();
-        items.Sort(comparer);
-        return items;
+        SimpleList<ItemSO> ItemSOs = new SimpleList<ItemSO>();
+        ItemSOs.Sort(comparer);
+        return ItemSOs;
     }
 
     private void InitializeShop()
     {
-        foreach (var kvp in ItemDatabase.Items)
+        itemDataBase.Init();
+
+        foreach (var item in itemDataBase.AllItems)
         {
-            _shopItems.Add(kvp.Key, kvp.Value);
-            
-            GameObject uiObj = Instantiate(itemPrefab, itemContainer);
-            ShopItemUI ui = uiObj.GetComponent<ShopItemUI>();
-            ui.Setup(kvp.Value, this);
+            int amount = Random.Range(1, 5);
+            _shopInventory[item.ID] = amount;
+            CreateItemUI(item, amount);
         }
-        
-        UpdateUI();
+
+        UpdateMoney();
+
+        //foreach (var kvp in itemDataBase.AllItems)
+        //{
+        //    _shopItemSOs.Add(kvp.Key, kvp.Value);
+
+        //    GameObject uiObj = Instantiate(ItemSOPrefab, ItemSOContainer);
+        //    ShopItemSOUI ui = uiObj.GetComponent<ShopItemSOUI>();
+        //    ui.Setup(kvp.Value, this);
+        //}
+
+        //UpdateUI();
     }
+
+    private void CreateItemUI(ItemSO item, int amount)
+    {
+        ShopItemUI ui = Instantiate(itemPrefab, itemContainer);
+        ui.Setup(item, this);
+    }
+
+    public bool Buy(ItemSO item)
+    {
+        if (!_shopInventory.ContainsKey(item.ID) || _money < item.Price)
+            return false;
+
+        _shopInventory[item.ID]--;
+
+        if (_shopInventory[item.ID] <= 0) 
+            _shopInventory.Remove(item.ID);
+
+        //_playerInventory[item.ID] = _playerInventory.ContainsKey(item.ID) ? _playerInventory[item.ID] + 1 : 1;
+
+        if (_playerInventory.ContainsKey(item.ID)) 
+            _playerInventory[item.ID]++;
+        else 
+            _playerInventory[item.ID] = 1;
+
+        _money -= item.Price;
+        UpdateMoney();
+        UpdateUI();
+        return true;
+        //if (!_shopItemSOs.ContainsValue(ItemSO.ID) || _money < ItemSO.Price) return false;
+
+        //_shopItemSOs.Remove(ItemSO.ID);
+        //_playerItemSOs.Add(ItemSO.ID, ItemSO.ID);
+        //_money -= ItemSO.Price;
+        //UpdateMoney();
+        //UpdateUI();
+        //return true;
+    }
+
+    public void Sell(ItemSO item)
+    {
+        if (!_playerInventory.ContainsKey(item.ID)) return;
+
+        _playerInventory[item.ID]--;
+        if (_playerInventory[item.ID] <= 0) _playerInventory.Remove(item.ID);
+
+        if (_shopInventory.ContainsKey(item.ID)) _shopInventory[item.ID]++;
+        else _shopInventory[item.ID] = 1;
+
+        _money += item.Price;
+        UpdateMoney();
+        UpdateUI();
+        //_playerItemSOs.Remove(ItemSO.ID);
+        //_shopItemSOs.Add(ItemSO.ID, ItemSO.ID);
+        //_money += ItemSO.Price;
+        //UpdateMoney();
+        //UpdateUI();
+    }
+
+    private void UpdateMoney() => moneyText.text = _money.ToString();
 
     private void UpdateUI()
     {
-        SimpleList<Item> sortedItems = new SimpleList<Item>(_shopItems.Values);
+        SimpleList<ItemSO> sortedItems = new();
+        
+        foreach (int id in _shopInventory.Keys)
+        {
+            ItemSO item = itemDataBase.GetItemByID(id);
+            if (item != null)
+                sortedItems.Add(item);
+        }
+
         sortedItems.Sort(_comparers[_currentSortOption]);
 
         for (int i = 0; i < sortedItems.Count; i++)
         {
-            Item item = sortedItems[i];
-            
-            //Find the child UI representing this item.
-            ShopItemUI ui = FindUIForItem(item);
+            ItemSO itemSO = sortedItems[i];
+
+            // Find the child UI representing this ItemSO.
+            ShopItemUI ui = FindUIForItemSO(itemSO);
             if (ui != null)
                 ui.transform.SetSiblingIndex(i);
         }
     }
 
-    private void UpdateMoney() => moneyText.text = _money.ToString();
 
-    private ShopItemUI FindUIForItem(Item item)
+    private ShopItemUI FindUIForItemSO(ItemSO itemSO)
     {
+        if (_itemUIMap.TryGetValue(itemSO.ID, out var ui))
+            return ui;
+
         foreach (Transform child in itemContainer)
         {
-            ShopItemUI ui = child.GetComponent<ShopItemUI>();
-            if (ui != null && ui.ItemID == item.ID)
-                return ui;
+            ShopItemUI foundUI = child.GetComponent<ShopItemUI>();
+            if (foundUI != null && foundUI.ItemID == itemSO.ID)
+            {
+                _itemUIMap[itemSO.ID] = foundUI;
+                return foundUI;
+            }
         }
+
         return null;
     }
 

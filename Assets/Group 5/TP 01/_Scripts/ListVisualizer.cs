@@ -199,5 +199,5 @@ public class ListVisualizer : MonoBehaviour
 	{
 		_listVisualizerText.text = $"List: [{_currentList}]";
 		_listCountVisualizerText.text = $"Count: {(int)_currentList.GetType().GetProperty("Count").GetValue(_currentList)}";
-	}
+    }
 }
