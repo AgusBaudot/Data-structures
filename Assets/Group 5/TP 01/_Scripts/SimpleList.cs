@@ -138,9 +138,22 @@ public class SimpleList<T> : ISimpleList<T>, IEnumerable<T>
 
         Array.Sort(_list, 0, _count, comparer); //Sort only the "active" 
     }
+
+    public void Sort(Comparison<T> comparison)
+    {
+        if (comparison == null)
+        {
+            Sort((IComparer<T>)null);
+            return;
+        }
+        
+        IComparer<T> comparer = Comparer<T>.Create(new Comparison<T>(comparison));
+        Array.Sort(_list, 0, _count, comparer);
+    }
     
     public void BubbleSort(IComparer<T> comparer = null)
     {
+        
         comparer ??= Comparer<T>.Default;
 
         for (int i = 0; i < _count - 1; i++) //Iterate through the list except the last element.

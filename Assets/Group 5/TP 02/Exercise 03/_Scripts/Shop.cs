@@ -1,19 +1,20 @@
 using Sortings;
 using System.Collections.Generic;
+using ShopContext;
 using TMPro;
 using UnityEngine;
 using static Comparers;
 
 public class Shop : MonoBehaviour
 {
-    [SerializeField] private Transform itemContainer;
+    [SerializeField] private Transform shopContainer;
+    [SerializeField] private Transform playerContainer;
     [SerializeField] private ShopItemUI itemPrefab;
     [SerializeField] private TextMeshProUGUI moneyText;
     [SerializeField] private ItemListSO itemDataBase;
 
     private Dictionary<int, int> _shopInventory = new();
     private Dictionary<int, int> _playerInventory = new();
-    private Dictionary<int, ShopItemUI> _itemUIMap = new();
     private int _money = 200;
     private SortOption _currentSortOption = SortOption.ID;
 
@@ -31,25 +32,27 @@ public class Shop : MonoBehaviour
         InitializeShop();
     }
 
-    public SimpleList<ItemSO> GetItemSOsSorted(IComparer<ItemSO> comparer)
-    {
-        SimpleList<ItemSO> ItemSOs = new SimpleList<ItemSO>();
-        ItemSOs.Sort(comparer);
-        return ItemSOs;
-    }
-
     private void InitializeShop()
     {
         itemDataBase.Init();
 
         foreach (var item in itemDataBase.AllItems)
         {
+            //Set initial amount of each item randomly
             int amount = Random.Range(1, 5);
             _shopInventory[item.ID] = amount;
-            CreateItemUI(item, amount);
+            
+            //Shop panel entry
+            ShopItemUI shopUI = Instantiate(itemPrefab, shopContainer);
+            shopUI.Setup(item, shop: this, ItemContext.Shop);
+            
+            //Player panel entry (start empty)
+            ShopItemUI playerUI = Instantiate(itemPrefab, playerContainer);
+            playerUI.Setup(item, shop: this, ItemContext.Player);
         }
 
         UpdateMoney();
+        UpdateUI();
 
         //foreach (var kvp in itemDataBase.AllItems)
         //{
@@ -60,28 +63,27 @@ public class Shop : MonoBehaviour
         //    ui.Setup(kvp.Value, this);
         //}
 
-        //UpdateUI();
     }
 
-    private void CreateItemUI(ItemSO item, int amount)
-    {
-        ShopItemUI ui = Instantiate(itemPrefab, itemContainer);
-        ui.Setup(item, this);
-    }
+    // private void CreateItemUI(ItemSO item)
+    // {
+    //     ShopItemUI ui = Instantiate(itemPrefab, itemContainer);
+    //     ui.Setup(item, this);
+    // }
 
-    public bool Buy(ItemSO item)
+    public void Buy(ItemSO item)
     {
         if (!_shopInventory.ContainsKey(item.ID) || _money < item.Price)
-            return false;
+            return;
 
         _shopInventory[item.ID]--;
 
-        if (_shopInventory[item.ID] <= 0) 
+        if (_shopInventory[item.ID] <= 0)
             _shopInventory.Remove(item.ID);
 
         //_playerInventory[item.ID] = _playerInventory.ContainsKey(item.ID) ? _playerInventory[item.ID] + 1 : 1;
 
-        if (_playerInventory.ContainsKey(item.ID)) 
+        if (_playerInventory.ContainsKey(item.ID))
             _playerInventory[item.ID]++;
         else 
             _playerInventory[item.ID] = 1;
@@ -89,7 +91,6 @@ public class Shop : MonoBehaviour
         _money -= item.Price;
         UpdateMoney();
         UpdateUI();
-        return true;
         //if (!_shopItemSOs.ContainsValue(ItemSO.ID) || _money < ItemSO.Price) return false;
 
         //_shopItemSOs.Remove(ItemSO.ID);
@@ -124,51 +125,122 @@ public class Shop : MonoBehaviour
 
     private void UpdateUI()
     {
-        SimpleList<ItemSO> sortedItems = new();
+        foreach (Transform child in shopContainer)
+        {
+            UpdateAmount(child);
+        }
+
+        foreach (Transform child in playerContainer)
+        {
+            UpdateAmount(child);
+        }
+
+        // SimpleList<ItemSO> sortedItems = new();
+        //
+        // foreach (int id in _shopInventory.Keys)
+        // {
+        //     ItemSO item = itemDataBase.GetItemByID(id);
+        //     if (item != null)
+        //         sortedItems.Add(item);
+        // }
+        //
+        // sortedItems.Sort(_comparers[_currentSortOption]);
+        //
+        // for (int i = 0; i < sortedItems.Count; i++)
+        // {
+        //     ItemSO itemSO =  sortedItems[i];
+        //     ShopItemUI ui = FindUIForItemSO(itemSO);
+        //     
+        //     if (ui != null)
+        //         ui.transform.SetSiblingIndex(i);
+        //     int shopStock = _shopInventory.TryGetValue(itemSO.ID, out var s) ? s : 0;
+        //     int playerStock = _playerInventory.TryGetValue(itemSO.ID, out var p) ? p : 0;
+        //     ui.Refresh(shopStock, playerStock);
+        // }
+    }
+
+    private void UpdateAmount(Transform child)
+    {
+        ShopItemUI ui = child.GetComponent<ShopItemUI>();
+        if (ui != null)
+        {
+            int shopStock = _shopInventory.TryGetValue(ui.ItemID, out var s) ? s : 0;
+            int playerStock = _playerInventory.TryGetValue(ui.ItemID, out var p) ? p : 0;
+            ui.Refresh(shopStock, playerStock);
+        }
+    }
+
+
+    private ShopItemUI FindUIForItemSO(ItemSO itemSO, ItemContext context)
+    {
+        Transform container = context == ItemContext.Shop ? shopContainer : playerContainer;
+        foreach (Transform child in container)
+        {
+            ShopItemUI ui = child.GetComponent<ShopItemUI>();
+            if (ui != null && ui.ItemID == itemSO.ID)
+                return ui;
+        }
+    
+        return null;
+    }
+
+    private void SortUI(IComparer<ItemSO> comparer, ItemContext context)
+    {
+        SimpleList<ItemSO> items = new();
+        //Select source according to context
+        Dictionary<int, int> source = context == ItemContext.Shop
+            ? _shopInventory
+            : _playerInventory;
         
-        foreach (int id in _shopInventory.Keys)
+        //Populate list
+        foreach (int id in source.Keys)
         {
             ItemSO item = itemDataBase.GetItemByID(id);
             if (item != null)
-                sortedItems.Add(item);
+                items.Add(item);
         }
-
-        sortedItems.Sort(_comparers[_currentSortOption]);
-
-        for (int i = 0; i < sortedItems.Count; i++)
+        
+        //Custom sort: first by "owned/sellable" in this context, then by selected comparer
+        items.Sort((a, b) =>
         {
-            ItemSO itemSO = sortedItems[i];
+            int aAmount = GetContextAmount(a.ID, context);
+            int bAmount = GetContextAmount(b.ID, context);
 
-            // Find the child UI representing this ItemSO.
-            ShopItemUI ui = FindUIForItemSO(itemSO);
+            bool aHasStock = aAmount > 0;
+            bool bHasStock = bAmount > 0;
+
+            //Put items with 0 stock at the bottom
+            if (aHasStock != bHasStock)
+                return aHasStock ? -1 : 1;
+
+            //Otherwise sort by chosen comparer
+            return comparer.Compare(a, b);
+        });
+        
+        //Reorder UI
+        for (int i = 0; i < items.Count; i++)
+        {
+            ShopItemUI ui = FindUIForItemSO(items[i], context);
             if (ui != null)
                 ui.transform.SetSiblingIndex(i);
         }
     }
 
-
-    private ShopItemUI FindUIForItemSO(ItemSO itemSO)
+    private int GetContextAmount (int itemID, ItemContext context)
     {
-        if (_itemUIMap.TryGetValue(itemSO.ID, out var ui))
-            return ui;
-
-        foreach (Transform child in itemContainer)
+        return context switch
         {
-            ShopItemUI foundUI = child.GetComponent<ShopItemUI>();
-            if (foundUI != null && foundUI.ItemID == itemSO.ID)
-            {
-                _itemUIMap[itemSO.ID] = foundUI;
-                return foundUI;
-            }
-        }
-
-        return null;
+            ItemContext.Shop => _shopInventory.TryGetValue(itemID, out var s) ? s : 0,
+            ItemContext.Player => _playerInventory.TryGetValue(itemID, out var p) ? p : 0,
+            _ => 0
+        };
     }
 
-    public void OnComparerChanged(int index)
+    public void OnComparerChanged(int index, ItemContext context)
     {
         if (_currentSortOption == (SortOption)index) return;
         _currentSortOption = (SortOption)index;
+        SortUI(_comparers[_currentSortOption], context);
         UpdateUI();
     }
 }

@@ -1,75 +1,70 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using ShopContext;
 
 public class ShopItemUI : MonoBehaviour
 {
-    private TextMeshProUGUI _nameText;
-    private TextMeshProUGUI _priceText;
-    private Image _icon;
-    private Button _buyButton;
+    [SerializeField] private TextMeshProUGUI nameText;
+    [SerializeField] private TextMeshProUGUI priceText;
+    [SerializeField] private TextMeshProUGUI stockText;
+    [SerializeField] private Image icon;
+    [SerializeField] private Button actionButton;
 
     private ItemSO _item;
     private Shop _shop;
-    private bool _purchased;
+    private ItemContext _context;
     private Sprite _soldSprite;
 
-    public void Setup(ItemSO item, Shop shop)
+    public void Setup(ItemSO item, Shop shop, ItemContext context)
     {
-        Debug.Log("Setup");
-        #region Cache references
-        _nameText = transform.GetChild(1).gameObject.GetComponent<TextMeshProUGUI>();
-        _priceText =  transform.GetChild(2).gameObject.GetComponent<TextMeshProUGUI>();
-        _icon = GetComponentInChildren<Image>();
-        _buyButton = GetComponentInChildren<Button>();
-        #endregion
-        
         _item = item;
         _shop = shop;
+        _context = context;
 
-        
-        _nameText.text = item.Name;
-        _priceText.text = item.Price.ToString();
-        _icon.sprite = item.Icon;
+        nameText.text = item.Name;
+        priceText.text = item.Price.ToString();
+        icon.sprite = item.Icon;
 
         //_soldSprite = ItemSODatabase.SoldItemSOs[item.Type];
-        
-        _buyButton.onClick.RemoveAllListeners();
-        _buyButton.onClick.AddListener(() => OnBuyClicked());
+
+        actionButton.onClick.RemoveAllListeners();
+        actionButton.onClick.AddListener(() => OnActionClicked());
+
+        UpdateButtonLabel();
     }
 
-    private void OnBuyClicked()
+    private void OnActionClicked()
     {
-        if (!_purchased)
+        //If this is a Shop item, then the button calls Buy, if it's a player item instead, call Sell.
+        if (_context == ItemContext.Shop)
+            _shop.Buy(_item);
+        else
+            _shop.Sell(_item);
+    }
+
+    private void UpdateButtonLabel()
+    {
+        //Adjust the button's text to match the context of this item.
+        actionButton.GetComponentInChildren<TextMeshProUGUI>().text =
+            _context == ItemContext.Shop ? "Buy" : "Sell";
+    }
+
+    public void Refresh(int shopStock, int playerStock)
+    {
+        if (_context == ItemContext.Shop)
         {
-            if (!_shop.Buy(_item)) return;
-            _buyButton.GetComponentInChildren<TextMeshProUGUI>().text = "Sell!";
+            //If this is a shop item, show how many of this item are left in shop and check if player can still buy.
+            stockText.text = $"Shop: {shopStock}";
+            actionButton.interactable = shopStock > 0;
         }
         else
         {
-            _shop.Sell(_item);
-            _buyButton.GetComponentInChildren<TextMeshProUGUI>().text = "Buy!";
+            //If this is a player item, do the same but with player.
+            stockText.text = $"You: {playerStock}";
+            actionButton.interactable = playerStock > 0;
         }
-
-        _purchased = !_purchased;
     }
-    
-    public int ItemID => _item.ID;
 
-    //private void Purchased(ItemSO ItemSO)
-    //{
-    //    if (!_purchased)
-    //    {
-    //        if (!_shop.Buy(ItemSO)) return;
-    //        _buyButton.GetComponentInChildren<TextMeshProUGUI>().text = "Sell!";
-    //        _icon.sprite = _soldSprite;
-    //    }
-    //    else
-    //    {
-    //        _buyButton.GetComponentInChildren<TextMeshProUGUI>().text = "Buy!";
-    //        _icon.sprite = ItemSO.Icon;
-    //        _shop.Sell(ItemSO);
-    //    }
-    //    _purchased = !_purchased;
-    //}
+    public int ItemID => _item.ID; //Return ID of this item.
 }
