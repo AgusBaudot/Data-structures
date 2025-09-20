@@ -11,12 +11,23 @@ public class ItemListSO : ScriptableObject
     public void Init()
     {
         _itemLookUp = new Dictionary<int, ItemSO>();
-        foreach (var item in AllItems)
+
+        // CAUTION: doing it this way won't override their assets (since it is done at runtime), so if we want their ID's to be permanent and persist to disk, change to editor persistence.
+        int nextID = 1;
+        for (int i = 0; i < AllItems.Count; i++)
         {
-            if (!_itemLookUp.ContainsKey(item.ID))
-                _itemLookUp.Add(item.ID, item);
-            else
-                Debug.LogWarning($"Duplicate item ID {item.ID} found!");
+            var item = AllItems[i];
+            if (item == null) continue;
+
+            //Pick first free new ID.
+            if (item.ID <= 0 || _itemLookUp.ContainsKey(item.ID))
+            {
+                while (_itemLookUp.ContainsKey(nextID)) nextID++;
+                item.ID = nextID;
+                nextID++;
+            }
+
+            _itemLookUp[item.ID] = item;
         }
     }
 

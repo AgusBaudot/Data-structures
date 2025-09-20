@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6df45f37c6074974993a66d2f4003f86, type: 3}
   m_Name: Legendary gun
   m_EditorClassIdentifier: 
-  ID: 0
-  Name: Gun 4
+  ID: 10
+  Name: Aetheric Rifle
   Price: 200
   Type: 3
   Rarity: 3

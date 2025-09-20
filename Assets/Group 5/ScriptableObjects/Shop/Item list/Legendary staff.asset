@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6df45f37c6074974993a66d2f4003f86, type: 3}
   m_Name: Legendary staff
   m_EditorClassIdentifier: 
-  ID: 0
-  Name: Staff 4
+  ID: 11
+  Name: Celestial Scepter
   Price: 200
   Type: 2
   Rarity: 3

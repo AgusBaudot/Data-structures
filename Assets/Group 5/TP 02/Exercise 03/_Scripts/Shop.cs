@@ -15,8 +15,9 @@ public class Shop : MonoBehaviour
 
     private Dictionary<int, int> _shopInventory = new();
     private Dictionary<int, int> _playerInventory = new();
-    private int _money = 200;
-    private SortOption _currentSortOption = SortOption.ID;
+    private int _money = 500;
+    private SortOption _currentPlayerSort = SortOption.ID;
+    private SortOption _currentShopSort = SortOption.ID;
 
     private readonly Dictionary<SortOption, IComparer<ItemSO>> _comparers = new()
     {
@@ -53,35 +54,19 @@ public class Shop : MonoBehaviour
 
         UpdateMoney();
         UpdateUI();
-
-        //foreach (var kvp in itemDataBase.AllItems)
-        //{
-        //    _shopItemSOs.Add(kvp.Key, kvp.Value);
-
-        //    GameObject uiObj = Instantiate(ItemSOPrefab, ItemSOContainer);
-        //    ShopItemSOUI ui = uiObj.GetComponent<ShopItemSOUI>();
-        //    ui.Setup(kvp.Value, this);
-        //}
-
     }
-
-    // private void CreateItemUI(ItemSO item)
-    // {
-    //     ShopItemUI ui = Instantiate(itemPrefab, itemContainer);
-    //     ui.Setup(item, this);
-    // }
 
     public void Buy(ItemSO item)
     {
-        if (!_shopInventory.ContainsKey(item.ID) || _money < item.Price)
-            return;
+        int shopBefore = GetContextAmount(item.ID, ItemContext.Shop);
+        int playerBefore = GetContextAmount(item.ID, ItemContext.Player);
+        
+        if (shopBefore == 0 || _money < item.Price) return;
 
-        _shopInventory[item.ID]--;
-
+        _shopInventory[item.ID] = shopBefore - 1;
+        
         if (_shopInventory[item.ID] <= 0)
             _shopInventory.Remove(item.ID);
-
-        //_playerInventory[item.ID] = _playerInventory.ContainsKey(item.ID) ? _playerInventory[item.ID] + 1 : 1;
 
         if (_playerInventory.ContainsKey(item.ID))
             _playerInventory[item.ID]++;
@@ -90,73 +75,55 @@ public class Shop : MonoBehaviour
 
         _money -= item.Price;
         UpdateMoney();
-        UpdateUI();
-        //if (!_shopItemSOs.ContainsValue(ItemSO.ID) || _money < ItemSO.Price) return false;
 
-        //_shopItemSOs.Remove(ItemSO.ID);
-        //_playerItemSOs.Add(ItemSO.ID, ItemSO.ID);
-        //_money -= ItemSO.Price;
-        //UpdateMoney();
-        //UpdateUI();
-        //return true;
+        int shopAfter = GetContextAmount(item.ID, ItemContext.Shop);
+        int playerAfter = GetContextAmount(item.ID, ItemContext.Player);
+        
+        MaybeReorderAfterChange(item.ID, shopBefore, shopAfter, playerBefore, playerAfter);
+        
+        UpdateUI();
     }
 
     public void Sell(ItemSO item)
     {
         if (!_playerInventory.ContainsKey(item.ID)) return;
 
-        _playerInventory[item.ID]--;
+        int shopBefore = GetContextAmount(item.ID, ItemContext.Shop);
+        int playerBefore = GetContextAmount(item.ID, ItemContext.Player);
+
+        _playerInventory[item.ID] = playerBefore - 1;
         if (_playerInventory[item.ID] <= 0) _playerInventory.Remove(item.ID);
 
-        if (_shopInventory.ContainsKey(item.ID)) _shopInventory[item.ID]++;
-        else _shopInventory[item.ID] = 1;
+        if (_shopInventory.ContainsKey(item.ID))
+            _shopInventory[item.ID]++;
+        else 
+            _shopInventory[item.ID] = 1;
 
         _money += item.Price;
         UpdateMoney();
+
+        int shopAfter = GetContextAmount(item.ID, ItemContext.Shop);
+        int playerAfter = GetContextAmount(item.ID, ItemContext.Player);
+        
+        MaybeReorderAfterChange(item.ID, shopBefore, shopAfter, playerBefore, playerAfter);
+        
         UpdateUI();
-        //_playerItemSOs.Remove(ItemSO.ID);
-        //_shopItemSOs.Add(ItemSO.ID, ItemSO.ID);
-        //_money += ItemSO.Price;
-        //UpdateMoney();
-        //UpdateUI();
     }
 
     private void UpdateMoney() => moneyText.text = _money.ToString();
 
     private void UpdateUI()
     {
-        foreach (Transform child in shopContainer)
-        {
-            UpdateAmount(child);
-        }
+        UpdateUIContext(ItemContext.Shop);
+        UpdateUIContext(ItemContext.Player);
+    }
 
-        foreach (Transform child in playerContainer)
-        {
+    private void UpdateUIContext(ItemContext context)
+    {
+        Transform container = context == ItemContext.Player ? playerContainer : shopContainer;
+        
+        foreach (Transform child in container)
             UpdateAmount(child);
-        }
-
-        // SimpleList<ItemSO> sortedItems = new();
-        //
-        // foreach (int id in _shopInventory.Keys)
-        // {
-        //     ItemSO item = itemDataBase.GetItemByID(id);
-        //     if (item != null)
-        //         sortedItems.Add(item);
-        // }
-        //
-        // sortedItems.Sort(_comparers[_currentSortOption]);
-        //
-        // for (int i = 0; i < sortedItems.Count; i++)
-        // {
-        //     ItemSO itemSO =  sortedItems[i];
-        //     ShopItemUI ui = FindUIForItemSO(itemSO);
-        //     
-        //     if (ui != null)
-        //         ui.transform.SetSiblingIndex(i);
-        //     int shopStock = _shopInventory.TryGetValue(itemSO.ID, out var s) ? s : 0;
-        //     int playerStock = _playerInventory.TryGetValue(itemSO.ID, out var p) ? p : 0;
-        //     ui.Refresh(shopStock, playerStock);
-        // }
     }
 
     private void UpdateAmount(Transform child)
@@ -187,16 +154,13 @@ public class Shop : MonoBehaviour
     private void SortUI(IComparer<ItemSO> comparer, ItemContext context)
     {
         SimpleList<ItemSO> items = new();
-        //Select source according to context
-        Dictionary<int, int> source = context == ItemContext.Shop
-            ? _shopInventory
-            : _playerInventory;
+
+        comparer ??= Comparer<ItemSO>.Default;
         
         //Populate list
-        foreach (int id in source.Keys)
+        foreach (var item in itemDataBase.AllItems)
         {
-            ItemSO item = itemDataBase.GetItemByID(id);
-            if (item != null)
+            if (item != null) 
                 items.Add(item);
         }
         
@@ -235,12 +199,47 @@ public class Shop : MonoBehaviour
             _ => 0
         };
     }
-
-    public void OnComparerChanged(int index, ItemContext context)
+    
+    private void MaybeReorderAfterChange(int itemID, int shopBefore, int shopAfter, int playerBefore, int playerAfter)
     {
-        if (_currentSortOption == (SortOption)index) return;
-        _currentSortOption = (SortOption)index;
-        SortUI(_comparers[_currentSortOption], context);
+        // Shop context transitions
+        if (shopBefore == 0 && shopAfter > 0)
+        {
+            // item appeared in shop (was zero, now non-zero) -> bring it above empty items
+            SortUI(_comparers[_currentShopSort], ItemContext.Shop);
+        }
+        else if (shopBefore > 0 && shopAfter == 0)
+        {
+            // item went to zero in shop -> push it to bottom
+            SortUI(_comparers[_currentShopSort], ItemContext.Shop);
+        }
+
+        // Player context transitions
+        if (playerBefore == 0 && playerAfter > 0)
+        {
+            // player gained a previously zero item -> bring it above empty player items
+            SortUI(_comparers[_currentPlayerSort], ItemContext.Player);
+        }
+        else if (playerBefore > 0 && playerAfter == 0)
+        {
+            // player lost their last of this item -> push it to bottom
+            SortUI(_comparers[_currentPlayerSort], ItemContext.Player);
+        }
+    }
+
+    public void OnShopComparerChanged(int index)
+    {
+        if ((int)_currentShopSort == index) return;
+        _currentShopSort = (SortOption)index;
+        SortUI(_comparers[_currentShopSort], ItemContext.Shop);
+        UpdateUI();
+    }
+
+    public void OnPlayerComparerChanged(int index)
+    {
+        if ((int)_currentPlayerSort == index) return;
+        _currentPlayerSort = (SortOption)index;
+        SortUI(_comparers[_currentPlayerSort], ItemContext.Player);
         UpdateUI();
     }
 }

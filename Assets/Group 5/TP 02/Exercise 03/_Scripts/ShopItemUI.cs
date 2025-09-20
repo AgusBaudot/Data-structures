@@ -7,7 +7,6 @@ public class ShopItemUI : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private TextMeshProUGUI priceText;
-    [SerializeField] private TextMeshProUGUI stockText;
     [SerializeField] private Image icon;
     [SerializeField] private Button actionButton;
 
@@ -25,8 +24,6 @@ public class ShopItemUI : MonoBehaviour
         nameText.text = item.Name;
         priceText.text = item.Price.ToString();
         icon.sprite = item.Icon;
-
-        //_soldSprite = ItemSODatabase.SoldItemSOs[item.Type];
 
         actionButton.onClick.RemoveAllListeners();
         actionButton.onClick.AddListener(() => OnActionClicked());
@@ -52,18 +49,11 @@ public class ShopItemUI : MonoBehaviour
 
     public void Refresh(int shopStock, int playerStock)
     {
-        if (_context == ItemContext.Shop)
-        {
-            //If this is a shop item, show how many of this item are left in shop and check if player can still buy.
-            stockText.text = $"Shop: {shopStock}";
-            actionButton.interactable = shopStock > 0;
-        }
-        else
-        {
-            //If this is a player item, do the same but with player.
-            stockText.text = $"You: {playerStock}";
-            actionButton.interactable = playerStock > 0;
-        }
+        int amount = _context == ItemContext.Player ? playerStock : shopStock;
+
+        nameText.text = $"{_item.Name} x{amount}";
+        
+        actionButton.interactable = amount > 0;
     }
 
     public int ItemID => _item.ID; //Return ID of this item.
