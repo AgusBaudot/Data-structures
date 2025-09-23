@@ -132,7 +132,7 @@ public class SimpleList<T> : ISimpleList<T>, IEnumerable<T>
         // return string.Join(", ", _list.Take(_count));
     }
 
-    public void Sort(IComparer<T> comparer)
+    public void Sort(IComparer<T> comparer = null)
     {
         comparer ??= Comparer<T>.Default;
 

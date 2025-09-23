@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6df45f37c6074974993a66d2f4003f86, type: 3}
-  m_Name: Legendary bow
+  m_Name: Common staff
   m_EditorClassIdentifier: 
-  ID: 9
-  Name: Voidstring Longbow
-  Price: 200
-  Type: 1
-  Rarity: 3
-  Icon: {fileID: -1582177883, guid: d8e8da476c7bf6d4a84c095b75258dc3, type: 3}
+  ID: 3
+  Name: Apprentice staff
+  Price: 50
+  Type: 2
+  Rarity: 0
+  Icon: {fileID: 261776257, guid: eb06f9d8526929d4bb644be01884fd50, type: 3}

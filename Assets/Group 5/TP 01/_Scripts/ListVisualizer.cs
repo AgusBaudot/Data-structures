@@ -37,7 +37,8 @@ public class ListVisualizer : MonoBehaviour
 			case 0: Add(_inputField.text); break;
 			case 1: AddRangeFromInput(_inputField.text); break;
 			case 2: Remove(_inputField.text); break;
-			case 3: Clear(); break;
+			case 3: Sort(); break;
+			case 4: Clear(); break;
 		}
 
 		_inputField.text = string.Empty;
@@ -151,6 +152,31 @@ public class ListVisualizer : MonoBehaviour
 		{
 			throw new NotSupportedException($"The type  {elementType} is not supported.");
 		}
+		UpdateList();
+	}
+
+	private void Sort()
+	{
+		Type elementType = _currentList.GetType().GetGenericArguments()[0];
+
+		if (elementType == typeof(int))
+		{
+			((SimpleList<int>)_currentList).Sort();
+		}
+		else if (elementType == typeof(float))
+		{
+			((SimpleList<float>)_currentList).Sort();
+		}
+		else if (elementType == typeof(string))
+		{
+			((SimpleList<string>)_currentList).Sort(StringComparer.InvariantCulture);
+		}
+		else
+		{
+			Debug.LogError($"Type {elementType} is not supported for sorting.");
+			return;
+		}
+
 		UpdateList();
 	}
 

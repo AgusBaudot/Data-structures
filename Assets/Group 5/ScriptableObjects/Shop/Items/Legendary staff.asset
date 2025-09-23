@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6df45f37c6074974993a66d2f4003f86, type: 3}
-  m_Name: Epic staff
+  m_Name: Legendary staff
   m_EditorClassIdentifier: 
-  ID: 7
-  Name: Starweaver Staff
-  Price: 150
+  ID: 11
+  Name: 'Celestia         '
+  Price: 200
   Type: 2
-  Rarity: 2
-  Icon: {fileID: 1227393575, guid: eb06f9d8526929d4bb644be01884fd50, type: 3}
+  Rarity: 3
+  Icon: {fileID: 1113336910, guid: eb06f9d8526929d4bb644be01884fd50, type: 3}

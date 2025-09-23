@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6df45f37c6074974993a66d2f4003f86, type: 3}
-  m_Name: Legendary staff
+  m_Name: Legendary gun
   m_EditorClassIdentifier: 
-  ID: 11
-  Name: Celestial Scepter
+  ID: 10
+  Name: Aether Rifle
   Price: 200
-  Type: 2
+  Type: 3
   Rarity: 3
-  Icon: {fileID: 1113336910, guid: eb06f9d8526929d4bb644be01884fd50, type: 3}
+  Icon: {fileID: 309359462, guid: bf2237e925900cb40ad26be297aaaa12, type: 3}

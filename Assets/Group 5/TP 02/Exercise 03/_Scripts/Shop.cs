@@ -79,7 +79,7 @@ public class Shop : MonoBehaviour
         int shopAfter = GetContextAmount(item.ID, ItemContext.Shop);
         int playerAfter = GetContextAmount(item.ID, ItemContext.Player);
         
-        MaybeReorderAfterChange(item.ID, shopBefore, shopAfter, playerBefore, playerAfter);
+        MaybeReorderAfterChange(shopBefore, shopAfter, playerBefore, playerAfter);
         
         UpdateUI();
     }
@@ -105,7 +105,7 @@ public class Shop : MonoBehaviour
         int shopAfter = GetContextAmount(item.ID, ItemContext.Shop);
         int playerAfter = GetContextAmount(item.ID, ItemContext.Player);
         
-        MaybeReorderAfterChange(item.ID, shopBefore, shopAfter, playerBefore, playerAfter);
+        MaybeReorderAfterChange(shopBefore, shopAfter, playerBefore, playerAfter);
         
         UpdateUI();
     }
@@ -200,7 +200,7 @@ public class Shop : MonoBehaviour
         };
     }
     
-    private void MaybeReorderAfterChange(int itemID, int shopBefore, int shopAfter, int playerBefore, int playerAfter)
+    private void MaybeReorderAfterChange(int shopBefore, int shopAfter, int playerBefore, int playerAfter)
     {
         // Shop context transitions
         if (shopBefore == 0 && shopAfter > 0)

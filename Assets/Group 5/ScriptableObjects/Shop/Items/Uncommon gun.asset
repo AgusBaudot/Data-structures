@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6df45f37c6074974993a66d2f4003f86, type: 3}
-  m_Name: Uncommon sword
+  m_Name: Uncommon gun
   m_EditorClassIdentifier: 
-  ID: 16
-  Name: Steel vindicator
+  ID: 14
+  Name: Storm Carbine
   Price: 100
-  Type: 0
+  Type: 3
   Rarity: 1
-  Icon: {fileID: 1558357774, guid: decb64ad842569745be9740ab57abf56, type: 3}
+  Icon: {fileID: -1396237126, guid: bf2237e925900cb40ad26be297aaaa12, type: 3}

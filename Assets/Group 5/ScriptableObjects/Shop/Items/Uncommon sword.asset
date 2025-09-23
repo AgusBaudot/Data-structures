@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6df45f37c6074974993a66d2f4003f86, type: 3}
-  m_Name: Uncommon bow
+  m_Name: Uncommon sword
   m_EditorClassIdentifier: 
-  ID: 13
-  Name: Ranger's Longbow
+  ID: 16
+  Name: 'Vindsteel            '
   Price: 100
-  Type: 1
+  Type: 0
   Rarity: 1
-  Icon: {fileID: -819166565, guid: d8e8da476c7bf6d4a84c095b75258dc3, type: 3}
+  Icon: {fileID: 1558357774, guid: decb64ad842569745be9740ab57abf56, type: 3}

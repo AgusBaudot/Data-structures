@@ -14,5 +14,14 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Group 5/TP 02/Exercise 03/Scenes/TP 02 Shop.unity
     guid: a488b5f98673a184eb2fcd0ea33f8df8
+  - enabled: 1
+    path: Assets/Group 5/TP 03/Exercises 04 & 05/Scenes/TP 03 MyQueue.unity
+    guid: d3888cac067d2fc4291e3a54b430834f
+  - enabled: 1
+    path: Assets/Group 5/TP 03/Exercises 06 & 07/Scenes/TP 03 MyStack.unity
+    guid: 10a334d9a86d0144aa0559469f26686e
+  - enabled: 1
+    path: Assets/Group 5/TP 05/Exercise 09/Scenes/Tp 05 Recursivity.unity
+    guid: 755bc6b81a31a424a8caf0b15f845275
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
