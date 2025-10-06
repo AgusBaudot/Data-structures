@@ -1,14 +1,17 @@
 using System;
-using System.Collections.Generic;
-using System.Data.SqlTypes;
-using UnityEditor.Experimental.GraphView;
+using System.IO;
 using UnityEngine;
 
-public class MyBST<T> : MonoBehaviour where T : IComparable<T>
+public class MyBST<T> where T : IComparable<T>
 {
-    public BSTNode<T> Root;
+    public BSTNode<T> Root { get; private set; }
+    
+    public int Count { get; private set; }
 
-    private int _height;
+    // private int _height;
+    private MyQueue<BSTNode<T>> _treeQueue = new();
+    
+    public MyBST() {}
 
     public MyBST(BSTNode<T> root)
     {
@@ -17,17 +20,24 @@ public class MyBST<T> : MonoBehaviour where T : IComparable<T>
 
     public void Insert(T data)
     {
-        //Create node with data and insert it.
         Insert(new BSTNode<T>(data));
     }
     
     public void Insert(BSTNode<T> node)
     {
+        if (Root == null)
+        {
+            Root = node;
+            Count++;
+            return;
+        }
         InsertRecursively(Root, node);
     }
 
     private void InsertRecursively(BSTNode<T> current, BSTNode<T> value)
     {
+        if (current == null) throw new ArgumentNullException(nameof(current));
+        
         if (value.CompareTo(current) == 0) return;
 
         if (value.CompareTo(current) < 0)
@@ -35,50 +45,180 @@ public class MyBST<T> : MonoBehaviour where T : IComparable<T>
             if (current.Left == null)
             {
                 current.SetLeft(value);
-                return;
+                Count++;
             }
-            InsertRecursively(current.Left, value);
+            
+            else
+                InsertRecursively(current.Left, value);
         }
 
-        if (value.CompareTo(current) > 0)
+        else
         {
             if (current.Right == null)
             {
                 current.SetRight(value);
-                return;
+                Count++;
             }
-            InsertRecursively(current.Right, value);
+            
+            else
+                InsertRecursively(current.Right, value);
         }
     }
 
-    public int GetBalanceFactor(T data)
+    public void Delete(T data) => Delete(GetNodeFromData(data));
+
+    public void Delete(BSTNode<T> node)
     {
-        //Search for node with data and perform based on that node.
-        //Call other function and pass node.
-        return 0;
+        if (node == null) return;
+
+        var parent = GetFatherOfNode(node);
+        
+        //If leaf
+        if (node.Left == null && node.Right == null)
+        {
+            ReplaceParentChild(parent, node, null);
+            Count--;
+            return;
+        }
+
+        //If 2 children
+        if (node.Left != null && node.Right != null)
+        {
+            var pred = FindBiggest(node.Left);
+            node.SetData(pred.Data);
+            Delete(pred);
+            return;
+        }
+        
+        //If 1 child
+        var child = node.Left ?? node.Right;
+        ReplaceParentChild(parent, node, child);
+        Count--;
     }
+
+    private BSTNode<T> FindBiggest(BSTNode<T> node)
+    {
+        BSTNode<T> current = node;
+        while (current.Right != null)
+        {
+            current =  current.Right;
+        }
+
+        return current;
+    }
+
+    private void ReplaceParentChild(BSTNode<T> parent, BSTNode<T> oldChild, BSTNode<T> newChild)
+    {
+        if (parent == null)
+        {
+            Root = newChild;
+            return;
+        }
+
+        if (parent.Left == oldChild) parent.SetLeft(newChild);
+        else if (parent.Right == oldChild) parent.SetRight(newChild);
+    }
+
+    public int GetBalanceFactor(T data) => GetBalanceFactor(GetNodeFromData(data));
 
     public int GetBalanceFactor(BSTNode<T> node = null)
     {
-        if (node == null)
-            node = Root;
+        node ??= Root;
 
-        //return GetHeight(node.Left - node.Right);
-        return 0;
+        return GetHeight(node.Left) - GetHeight(node.Right);
     }
 
-    private int GetHeight(BSTNode<T> node, int depth)
+    private int GetHeight(BSTNode<T> node)
     {
-        //Add 1 to depth on each call. When leaf is found, start returning value.
-        //Return max value.
-        return 0;
+        if (node == null) return 0; //Return -1 if edge based instead of node based.
+        int left = GetHeight(node.Left);
+        int right = GetHeight(node.Right);
+
+        return 1 + Math.Max(left, right);
     }
 
     private BSTNode<T> GetNodeFromData(T data)
     {
-        //Return node when data matches.
-        return null;
+        var n = GetNodeRecursively(Root, data);
+        if (n == null) throw new InvalidDataException($"Data {data} is not present in tree.");
+        return n;
     }
 
-    public int GetHeight() => _height;
+    private BSTNode<T> GetNodeRecursively(BSTNode<T> node, T data)
+    {
+        if (node == null) return null;
+
+        if (data.CompareTo(node.Data) == 0) return node;
+        return data.CompareTo(node.Data) < 0
+            ? GetNodeRecursively(node.Left, data)
+            : GetNodeRecursively(node.Right, data);
+    }
+
+    private BSTNode<T> GetFatherOfNode(BSTNode<T> node)
+    {
+        if (node == Root || node == null) return null;
+
+        BSTNode<T> current = Root;
+        BSTNode<T> parent = null;
+
+        while (current != null)
+        {
+            if (ReferenceEquals(current.Left, node) || ReferenceEquals(current.Right, node))
+                return current;
+
+            parent = current;
+            current = node.CompareTo(current) < 0
+                ? current.Left
+                : current.Right;
+        }
+        
+        throw new InvalidDataException($"Node  {node.Data} is not present in tree.");
+    }
+
+    public int GetHeight() => GetHeight(Root);
+
+    public override string ToString()
+    {
+        if (Root == null) return string.Empty;
+
+        _treeQueue.Clear();
+        _treeQueue.Enqueue(Root);
+
+        while (_treeQueue.Count > 0)
+        {
+            var node =  _treeQueue.Dequeue();
+            Debug.Log(node.Data);
+            if (node.Left != null)
+                _treeQueue.Enqueue(node.Left);
+            if (node.Right != null)
+                _treeQueue.Enqueue(node.Right);
+        }
+
+        return "";
+    }
+
+    public bool Contains(T data) => GetNodeFromData(data) != null;
+
+    public void Clear()
+    {
+        Clear(Root);
+        Root = null;
+        _treeQueue.Clear();
+        Count = 0;
+    }
+
+    private void Clear(BSTNode<T> node)
+    {
+        if (node == null) return;
+
+        Clear(node.Left);
+        Clear(node.Right);
+        
+        node.SetLeft(null);
+        node.SetRight(null);
+        node.SetData(default);
+        //Maybe iterative of recursive to avoid stack overflow in deep trees.
+    }
+
+    public bool IsEmpty() => Count == 0;
 }

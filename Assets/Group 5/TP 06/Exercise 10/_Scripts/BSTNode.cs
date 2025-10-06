@@ -1,7 +1,6 @@
 using System;
-using UnityEngine;
 
-public class BSTNode<T> :MonoBehaviour, IComparable<T> where T : IComparable<T>
+public class BSTNode<T> : IComparable<T> where T : IComparable<T>
 {
     public BSTNode<T> Left { get; private set; }
     public BSTNode<T> Right { get; private set; }
@@ -12,15 +11,11 @@ public class BSTNode<T> :MonoBehaviour, IComparable<T> where T : IComparable<T>
         Data = data;
     }
 
-    public void SetLeft(BSTNode<T> node)
-    {
-        Left = node;
-    }
+    public void SetLeft(BSTNode<T> n) => Left = n;
 
-    public void SetRight(BSTNode<T> node)
-    {
-        Right = node;
-    }
+    public void SetRight(BSTNode<T> n) => Right = n;
+
+    public void SetData(T d) => Data = d;
 
     public int CompareTo(T other)
     {
@@ -30,5 +25,10 @@ public class BSTNode<T> :MonoBehaviour, IComparable<T> where T : IComparable<T>
     public int CompareTo(BSTNode<T> other)
     {
         return Data.CompareTo(other.Data);
+    }
+
+    public bool Equals(BSTNode<T> obj)
+    {
+        return Data.Equals(obj.Data);
     }
 }

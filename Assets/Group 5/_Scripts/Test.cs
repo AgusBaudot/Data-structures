@@ -15,6 +15,8 @@ public class Test : MonoBehaviour
 
     private MyStack<int> _myStack = new MyStack<int>();
     private Stack<int> _stack = new Stack<int>();
+
+    private MyBST<int> _bst = new MyBST<int>();
     
     
     private void Start()
@@ -22,7 +24,8 @@ public class Test : MonoBehaviour
         //ArrayListTest();
         //LinkedListTest();
         //QueueTest();
-        StackTest();
+        // StackTest();
+        BSTTest();
     }
 
     private void ArrayListTest()
@@ -170,6 +173,46 @@ public class Test : MonoBehaviour
         _myStack.Clear();
         _stack.Clear();
         Debug.Assert(CompareStacks(_myStack, _stack));
+    }
+
+    private void BSTTest()
+    {
+        #region Insertion testing
+        
+        _bst.Insert(10);
+        _bst.Insert(5);
+        _bst.Insert(15);
+
+        Debug.Assert(_bst.Root != null);
+        Debug.Assert(_bst.Root.Data == 10);
+        Debug.Assert(_bst.Root.Left.Data == 5);
+        Debug.Assert(_bst.Root.Right.Data == 15);
+
+        var node = new BSTNode<int>(2);
+        _bst.Insert(node);
+        Debug.Assert(_bst.Root.Left.Left != null && _bst.Root.Left.Left.Data == 2);
+
+        #endregion
+
+        #region BalanceFactor calculation testing
+        
+        _bst.Insert(7);
+
+        int rootBalance = _bst.GetBalanceFactor(_bst.Root);
+        Debug.Assert(rootBalance == 1);
+        int leftBalance = _bst.GetBalanceFactor(5);
+        Debug.Assert(leftBalance == 0);
+        int rightBalance = _bst.GetBalanceFactor(_bst.Root.Right);
+        Debug.Assert(rightBalance == 0);
+        
+        #endregion
+
+        #region Height testing
+
+        _bst.ToString();
+        Debug.Assert(_bst.GetHeight() == 3);
+
+        #endregion
     }
 
     
