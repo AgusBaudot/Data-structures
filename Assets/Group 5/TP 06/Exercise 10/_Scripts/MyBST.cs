@@ -172,7 +172,7 @@ public class MyBST<T> where T : IComparable<T>
                 : current.Right;
         }
         
-        throw new InvalidDataException($"Node  {node.Data} is not present in tree.");
+        throw new InvalidDataException($"Node {node.Data} is not present in tree.");
     }
 
     public int GetHeight() => GetHeight(Root);
@@ -218,6 +218,48 @@ public class MyBST<T> where T : IComparable<T>
         node.SetRight(null);
         node.SetData(default);
         //Maybe iterative of recursive to avoid stack overflow in deep trees.
+    }
+
+    public void PreOrderTraversal(Action<T> action)
+    {
+        PreOrderRecursive(Root, action);
+    }
+
+    private void PreOrderRecursive(BSTNode<T> current, Action<T> action)
+    {
+        if (current == null) return;
+
+        action(current.Data);
+        PreOrderRecursive(current.Left, action);
+        PreOrderRecursive(current.Right, action);
+    }
+
+    public void InOrderTraversal(Action<T> action)
+    {
+        InOrderRecursive(Root, action);
+    }
+
+    private void InOrderRecursive(BSTNode<T> current, Action<T> action)
+    {
+        if (current == null) return;
+
+        InOrderRecursive(current.Left, action);
+        action(current.Data);
+        InOrderRecursive(current.Right, action);
+    }
+
+    public void PostOrderTraversal(Action<T> action)
+    {
+        PostOrderRecursive(Root, action);
+    }
+
+    private void PostOrderRecursive(BSTNode<T> current, Action<T> action)
+    {
+        if (current == null) return;
+
+        PostOrderRecursive(current.Left, action);
+        PostOrderRecursive(current.Right, action);
+        action(current.Data);
     }
 
     public bool IsEmpty() => Count == 0;

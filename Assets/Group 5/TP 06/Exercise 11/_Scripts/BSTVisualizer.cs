@@ -225,6 +225,7 @@ public class BSTVisualizer : MonoBehaviour
         }
 
         Recur(root);
+
         return sb.ToString();
     }
 
