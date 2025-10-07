@@ -9,7 +9,7 @@ public class MyBST<T> where T : IComparable<T>
     public int Count { get; private set; }
 
     // private int _height;
-    private MyQueue<BSTNode<T>> _treeQueue = new();
+    protected MyQueue<BSTNode<T>> _treeQueue = new();
     
     public MyBST() {}
 
@@ -18,12 +18,12 @@ public class MyBST<T> where T : IComparable<T>
         Root = root;
     }
 
-    public void Insert(T data)
+    public virtual void Insert(T data)
     {
         Insert(new BSTNode<T>(data));
     }
     
-    public void Insert(BSTNode<T> node)
+    public virtual void Insert(BSTNode<T> node)
     {
         if (Root == null)
         {
@@ -34,7 +34,7 @@ public class MyBST<T> where T : IComparable<T>
         InsertRecursively(Root, node);
     }
 
-    private void InsertRecursively(BSTNode<T> current, BSTNode<T> value)
+    protected virtual void InsertRecursively(BSTNode<T> current, BSTNode<T> value)
     {
         if (current == null) throw new ArgumentNullException(nameof(current));
         
@@ -67,7 +67,7 @@ public class MyBST<T> where T : IComparable<T>
 
     public void Delete(T data) => Delete(GetNodeFromData(data));
 
-    public void Delete(BSTNode<T> node)
+    protected virtual void Delete(BSTNode<T> node)
     {
         if (node == null) return;
 
@@ -96,7 +96,7 @@ public class MyBST<T> where T : IComparable<T>
         Count--;
     }
 
-    private BSTNode<T> FindBiggest(BSTNode<T> node)
+    protected BSTNode<T> FindBiggest(BSTNode<T> node)
     {
         BSTNode<T> current = node;
         while (current.Right != null)
@@ -107,7 +107,7 @@ public class MyBST<T> where T : IComparable<T>
         return current;
     }
 
-    private void ReplaceParentChild(BSTNode<T> parent, BSTNode<T> oldChild, BSTNode<T> newChild)
+    protected void ReplaceParentChild(BSTNode<T> parent, BSTNode<T> oldChild, BSTNode<T> newChild)
     {
         if (parent == null)
         {
@@ -128,7 +128,7 @@ public class MyBST<T> where T : IComparable<T>
         return GetHeight(node.Left) - GetHeight(node.Right);
     }
 
-    private int GetHeight(BSTNode<T> node)
+    protected int GetHeight(BSTNode<T> node)
     {
         if (node == null) return 0; //Return -1 if edge based instead of node based.
         int left = GetHeight(node.Left);
@@ -137,14 +137,14 @@ public class MyBST<T> where T : IComparable<T>
         return 1 + Math.Max(left, right);
     }
 
-    private BSTNode<T> GetNodeFromData(T data)
+    protected BSTNode<T> GetNodeFromData(T data)
     {
         var n = GetNodeRecursively(Root, data);
         if (n == null) throw new InvalidDataException($"Data {data} is not present in tree.");
         return n;
     }
 
-    private BSTNode<T> GetNodeRecursively(BSTNode<T> node, T data)
+    protected BSTNode<T> GetNodeRecursively(BSTNode<T> node, T data)
     {
         if (node == null) return null;
 
@@ -154,7 +154,7 @@ public class MyBST<T> where T : IComparable<T>
             : GetNodeRecursively(node.Right, data);
     }
 
-    private BSTNode<T> GetFatherOfNode(BSTNode<T> node)
+    protected BSTNode<T> GetFatherOfNode(BSTNode<T> node)
     {
         if (node == Root || node == null) return null;
 
@@ -207,7 +207,7 @@ public class MyBST<T> where T : IComparable<T>
         Count = 0;
     }
 
-    private void Clear(BSTNode<T> node)
+    protected void Clear(BSTNode<T> node)
     {
         if (node == null) return;
 
@@ -225,7 +225,7 @@ public class MyBST<T> where T : IComparable<T>
         PreOrderRecursive(Root, action);
     }
 
-    private void PreOrderRecursive(BSTNode<T> current, Action<T> action)
+    protected void PreOrderRecursive(BSTNode<T> current, Action<T> action)
     {
         if (current == null) return;
 
@@ -239,7 +239,7 @@ public class MyBST<T> where T : IComparable<T>
         InOrderRecursive(Root, action);
     }
 
-    private void InOrderRecursive(BSTNode<T> current, Action<T> action)
+    protected void InOrderRecursive(BSTNode<T> current, Action<T> action)
     {
         if (current == null) return;
 
@@ -253,7 +253,7 @@ public class MyBST<T> where T : IComparable<T>
         PostOrderRecursive(Root, action);
     }
 
-    private void PostOrderRecursive(BSTNode<T> current, Action<T> action)
+    protected void PostOrderRecursive(BSTNode<T> current, Action<T> action)
     {
         if (current == null) return;
 

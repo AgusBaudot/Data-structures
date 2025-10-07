@@ -107,7 +107,7 @@ public class BSTVisualizer : MonoBehaviour
         Type elementType = GetTreeElementType();
         object parsed = ParseInputForType(input, elementType);
 
-        MethodInfo deleteMethod = _currentTree.GetType().GetMethod("Delete", new Type[] { elementType });
+        MethodInfo deleteMethod = _currentTree.GetType().GetMethod("Delete", new Type[] {elementType});
         if (deleteMethod == null) throw new MissingMethodException("Delete method not found on BST.");
 
         deleteMethod.Invoke(_currentTree, new[] { parsed });
