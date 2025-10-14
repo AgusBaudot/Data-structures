@@ -5,64 +5,89 @@ public class AVLTree<T> : MyBST<T> where T : IComparable<T>
     //Auto balancing tree.
     //Every time the tree is modified, check for balance.
 
-    private bool ShouldBeBalanced(BSTNode<T> node) //Check if tree should be balanced after every modification of tree.
-    {
-        node ??= Root;
-        int bf = GetBalanceFactor();
-        if (bf < -1 || bf > 1)
-        {
-            return true;
-        }
-        return false;
-    }
+    public AVLTree() : base() {}
 
-    private RotationType DefineRotationType(BSTNode<T> node)
-    {
-        node ??= Root;
-        int bf = GetBalanceFactor(node);
-        //LL occurs when node is inserted into the left subtree of the left child of node.
-        if (bf > 1) return RotationType.LL;
-        //RR occurs when node is inserted into the right subtree of the right child of node.
-        //LR occurs when node is inserted into the right subtree of the left child of node.
-        //RL occurs when node is inserted into the left subtree of the right child of node.
-        return RotationType.LL;
-    }
+    public AVLTree(BSTNode<T> root) : base(root) {}
 
     public override void Insert(T data)
     {
         base.Insert(data);
+        Root = RebalanceSubtree(Root);
     }
 
     public override void Insert(BSTNode<T> node)
     {
         base.Insert(node);
-    }
-
-    protected override void InsertRecursively(BSTNode<T> current, BSTNode<T> value)
-    {
-        base.InsertRecursively(current, value);
+        Root = RebalanceSubtree(Root);
     }
 
     protected override void Delete(BSTNode<T> node)
     {
+        if (node == null) return;
         base.Delete(node);
+        Root = RebalanceSubtree(Root);
     }
-
-    private void RotateRight()
+    
+    //Rebalancing logic (post-order): returns new root of this subtree.
+    //Could be further optimized to O(log n). (Now O(n.h) where h is height of tree. Practically O(n^2) in pathological cases).
+    //Add per-node height for max-optimization.
+    private BSTNode<T> RebalanceSubtree(BSTNode<T> node)
     {
-        //Select B and put it as root.
+        if (node == null) return null;
+
+        BSTNode<T> left = RebalanceSubtree(node.Left);
+        BSTNode<T> right = RebalanceSubtree(node.Right);
+
+        //Ensure children references are updated in case rotations below replaced them.
+        node.SetLeft(left);
+        node.SetRight(right);
+
+        int bf = GetBalanceFactor(node);
+
+        if (bf > 1)
+        {
+            if (GetBalanceFactor(node.Left) < 0)
+                node.SetLeft(RotateLeftNode(node.Left));
+
+            return RotateRightNode(node);
+        }
+
+        if (bf < -1)
+        {
+            if (GetBalanceFactor(node.Right) > 0)
+                node.SetRight(RotateRightNode(node.Right));
+
+            return RotateLeftNode(node);
+        }
+
+        return node;
     }
 
-    private void RotateLeft()
+    private BSTNode<T> RotateRightNode(BSTNode<T> n)
     {
-        //Select B and put it as root.
-    }
-}
+        if (n == null) return null;
+        BSTNode<T> l = n.Left;
+        if (l == null) return n;
 
-public enum RotationType
-{
-    RR,
-    LL,
-    RL,
-    LR
+        BSTNode<T> r = l.Right;
+
+        l.SetRight(n);
+        n.SetLeft(r);
+
+        return l;
+    }
+
+    private BSTNode<T> RotateLeftNode(BSTNode<T> n)
+    {
+        if (n == null) return null;
+        BSTNode<T> r = n.Right;
+        if (r == null) return n;
+        
+        BSTNode<T> l = r.Left;
+
+        r.SetLeft(n);
+        n.SetRight(l);
+        
+        return r;
+    }
 }

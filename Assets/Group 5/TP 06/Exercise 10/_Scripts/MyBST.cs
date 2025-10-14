@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MyBST<T> where T : IComparable<T>
 {
-    public BSTNode<T> Root { get; private set; }
+    public BSTNode<T> Root { get; protected set; }
     
     public int Count { get; private set; }
 
