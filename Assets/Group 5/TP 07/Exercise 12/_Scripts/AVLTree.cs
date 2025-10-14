@@ -9,16 +9,18 @@ public class AVLTree<T> : MyBST<T> where T : IComparable<T>
 
     public AVLTree(BSTNode<T> root) : base(root) {}
 
-    public override void Insert(T data)
+    public override bool Insert(T data)
     {
-        base.Insert(data);
+        bool insert = base.Insert(data);
         Root = RebalanceSubtree(Root);
+        return insert;
     }
 
-    public override void Insert(BSTNode<T> node)
+    public override bool Insert(BSTNode<T> node)
     {
-        base.Insert(node);
+        bool insert = base.Insert(node);
         Root = RebalanceSubtree(Root);
+        return insert;
     }
 
     protected override void Delete(BSTNode<T> node)

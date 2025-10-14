@@ -4,8 +4,8 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using TMPro;
 using UnityEngine;
+using TMPro;
 
 public class BSTVisualizer : MonoBehaviour
 {
@@ -194,9 +194,6 @@ public class BSTVisualizer : MonoBehaviour
         UpdateTree();
     }
 
-    // ----------------------
-    // Update display / helpers
-    // ----------------------
     private void UpdateTree()
     {
         if (_currentTree == null)
@@ -242,34 +239,75 @@ public class BSTVisualizer : MonoBehaviour
         _positions.Clear();
         float startX = 0f;
         ComputePositionsRecursive(root, 0, ref startX);
+
+        EnforceSingleChildPlacement(root);
+
+        CenterTreeOnRoot(root);
         
         //Finally, instantiate visuals (nodes and respective connectors).
         CreateVisualsRecursive(root, null);
+    }
 
-        // if (_currentTree == null)
-        // {
-        //     _treeVisualizerText.text = "No tree.";
-        //     _treeCountVisualizerText.text = "Count: 0";
-        //     _treeIsEmpty.text = $"Is empty: {_currentTree.GetType().GetMethod("IsEmpty", Type.EmptyTypes).Invoke(_currentTree, null)}";
-        //     return;
-        // }
-        //
-        // // Update Count
-        // var countProp = _currentTree.GetType().GetProperty("Count");
-        // int count = countProp != null ? (int)countProp.GetValue(_currentTree) : -1;
-        //
-        // // Update Height (try to call GetHeight())
-        // int height = -1;
-        // MethodInfo heightMethod = _currentTree.GetType().GetMethod("GetHeight", Type.EmptyTypes);
-        // if (heightMethod != null) height = (int)heightMethod.Invoke(_currentTree, null);
-        //
-        // // Build in-order representation (safe)
-        // object root = _currentTree.GetType().GetProperty("Root")?.GetValue(_currentTree);
-        // string inOrder = BuildInOrderString(root);
-        //
-        // _treeVisualizerText.text = $"In-order: {inOrder}";
-        // _treeCountVisualizerText.text = $"Count: {count}\nHeight: {height}";
-        // _treeIsEmpty.text = $"Is empty: {_currentTree.GetType().GetMethod("IsEmpty", Type.EmptyTypes).Invoke(_currentTree, null)}";
+    private void CenterTreeOnRoot(object root)
+    {
+        if (root == null) return;
+
+        if (!_positions.TryGetValue(root, out var rootPos)) return;
+        if (Mathf.Approximately(_rootOffset.x - rootPos.x, 0f)) return;
+
+        var keys = _positions.Keys.ToArray();
+        foreach (var k in keys)
+        {
+            _positions[k] = new Vector2(_positions[k].x + (_rootOffset.x - rootPos.x), _positions[k].y);
+        }
+    }
+
+    private void EnforceSingleChildPlacement(object root)
+    {
+        if (root == null) return;
+        Type nodeType = root.GetType();
+        var left = nodeType.GetProperty("Left")?.GetValue(root);
+        var right = nodeType.GetProperty("Right")?.GetValue(root);
+
+        // Recurse first so children positions exist
+        if (left != null) EnforceSingleChildPlacement(left);
+        if (right != null) EnforceSingleChildPlacement(right);
+
+        // If only left child exists
+        if (left != null && right == null)
+        {
+            Vector2 parentPos = _positions[root];
+            // child should be under-left of parent: x - horizontalSpacing, y - verticalSpacing
+            Vector2 desiredLeftPos = parentPos + new Vector2(-_horizontalSpacing, -_verticalSpacing);
+            Vector2 currentLeftPos = _positions[left];
+            Vector2 delta = desiredLeftPos - currentLeftPos;
+            if (delta != Vector2.zero) ShiftSubtree(left, delta);
+        }
+        // If only right child exists
+        else if (right != null && left == null)
+        {
+            Vector2 parentPos = _positions[root];
+            // child should be under-right of parent: x + horizontalSpacing, y - verticalSpacing
+            Vector2 desiredRightPos = parentPos + new Vector2(_horizontalSpacing, -_verticalSpacing);
+            Vector2 currentRightPos = _positions[right];
+            Vector2 delta = desiredRightPos - currentRightPos;
+            if (delta != Vector2.zero) ShiftSubtree(right, delta);
+        }
+    }
+
+    private void ShiftSubtree(object node, Vector2 delta)
+    {
+        if (node == null || delta == Vector2.zero) return;
+
+        if (_positions.ContainsKey(node))
+            _positions[node] += delta;
+
+        //Recurse
+        Type nodeType = node.GetType();
+        var left = nodeType.GetProperty("Left")?.GetValue(node, null);
+        var right = nodeType.GetProperty("Right")?.GetValue(node, null);
+        if (left != null) ShiftSubtree(left, delta);
+        if (right != null) ShiftSubtree(right, delta);
     }
 
     // Build a simple in-order traversal by reflecting into node objects.
@@ -466,26 +504,55 @@ public class BSTVisualizer : MonoBehaviour
     private void UpdateNodeChildConnector(RectTransform nodeRt, RectTransform childRt, string connectorName, bool active)
     {
         if (nodeRt == null) return;
+
+        // Find the connector object
         Transform connT = nodeRt.Find(connectorName);
         if (connT == null) return; // prefab doesn't have that child, nothing to do
 
-        RectTransform connRt = connT as RectTransform;
+        // Ensure the connector GameObject is active/inactive
         connT.gameObject.SetActive(active);
+
+        // Re-parent connector into the container so we can work in container-local anchored positions
+        if (connT.parent != _treeContainer && _treeContainer != null)
+        {
+            connT.SetParent(_treeContainer, true); // keep world position while moving under container
+        }
 
         if (!active || childRt == null) return;
 
         // Compute vector from node to child in container-space anchored positions
         Vector2 a = nodeRt.anchoredPosition;
         Vector2 b = childRt.anchoredPosition;
-        Vector2 diff = b - a;
-        float distance = diff.magnitude;
 
-        // connector pivot/origin expected at node center (0.5,0.5) and anchored to container center
-        // adjust size and rotation
+        // Check for LineRenderer component
+        var line = connT.GetComponent<LineRenderer>();
+        if (line != null)
+        {
+            // Ensure the line uses local space
+            line.useWorldSpace = false; // This allows us to work with local anchored positions
+            line.positionCount = 2;
+
+            // Convert 2D anchored positions into 3D local positions (z = 0)
+            Vector3 p0 = new Vector3(a.x, a.y, 0f); // Parent position (node)
+            Vector3 p1 = new Vector3(b.x, b.y, 0f); // Child position (node)
+
+            // Set the positions of the line
+            line.SetPosition(0, p0);
+            line.SetPosition(1, p1);
+            return;
+        }
+
+        // Otherwise, treat the connector as a RectTransform (fallback)
+        RectTransform connRt = connT as RectTransform;
+        if (connRt == null) return;
+
+        float distance = Vector2.Distance(a, b);
         float thickness = Mathf.Max(2f, nodeRt.sizeDelta.y * 0.08f); // tweak thickness relative to node
-        connRt.sizeDelta = new Vector2(distance, thickness);
-        connRt.anchoredPosition = a + diff * 0.5f; // middle point
-        float angle = Mathf.Atan2(diff.y, diff.x) * Mathf.Rad2Deg;
+        connRt.sizeDelta = new Vector2(distance, thickness); // Adjust the length of the connector
+        connRt.anchoredPosition = a + (b - a) * 0.5f; // Middle point
+
+        // Calculate angle between the two nodes
+        float angle = Mathf.Atan2(b.y - a.y, b.x - a.x) * Mathf.Rad2Deg;
         connRt.localEulerAngles = new Vector3(0f, 0f, angle);
     }
     
@@ -503,29 +570,6 @@ public class BSTVisualizer : MonoBehaviour
         _nodeToRect[node] = rt;
         return rt;
     }
-    
-    // private void CreateConnector(RectTransform from, RectTransform to)
-    // {
-    //     GameObject conn;
-    //     if (connectorPrefab != null)
-    //         conn = Instantiate(connectorPrefab, _treeContainer);
-    //
-    //     var rt = conn.GetComponent<RectTransform>();
-    //     Vector2 a = from.anchoredPosition;
-    //     Vector2 b = to.anchoredPosition;
-    //     Vector2 diff = b - a;
-    //     float dist = diff.magnitude;
-    //
-    //     rt.pivot = new Vector2(0.5f, 0.5f);
-    //     rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
-    //     rt.anchoredPosition = a + diff * 0.5f;
-    //     float thickness = 4f;
-    //     rt.sizeDelta = new Vector2(dist, thickness);
-    //     float angle = Mathf.Atan2(diff.y, diff.x) * Mathf.Rad2Deg;
-    //     rt.localEulerAngles = new Vector3(0f, 0f, angle);
-    //
-    //     _connectors.Add(conn);
-    // }
 
     #endregion
 }

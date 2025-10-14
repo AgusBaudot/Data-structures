@@ -18,27 +18,27 @@ public class MyBST<T> where T : IComparable<T>
         Root = root;
     }
 
-    public virtual void Insert(T data)
+    public virtual bool Insert(T data)
     {
-        Insert(new BSTNode<T>(data));
+        return Insert(new BSTNode<T>(data));
     }
     
-    public virtual void Insert(BSTNode<T> node)
+    public virtual bool Insert(BSTNode<T> node)
     {
         if (Root == null)
         {
             Root = node;
             Count++;
-            return;
+            return true;
         }
-        InsertRecursively(Root, node);
+        return InsertRecursively(Root, node);
     }
 
-    protected virtual void InsertRecursively(BSTNode<T> current, BSTNode<T> value)
+    protected virtual bool InsertRecursively(BSTNode<T> current, BSTNode<T> value)
     {
         if (current == null) throw new ArgumentNullException(nameof(current));
         
-        if (value.CompareTo(current) == 0) return;
+        if (value.CompareTo(current) == 0) return false;
 
         if (value.CompareTo(current) < 0)
         {
@@ -63,6 +63,7 @@ public class MyBST<T> where T : IComparable<T>
             else
                 InsertRecursively(current.Right, value);
         }
+        return true;
     }
 
     public void Delete(T data) => Delete(GetNodeFromData(data));
@@ -159,15 +160,14 @@ public class MyBST<T> where T : IComparable<T>
         if (node == Root || node == null) return null;
 
         BSTNode<T> current = Root;
-        BSTNode<T> parent = null;
 
         while (current != null)
         {
+            Debug.Log(current.Data);
             if (ReferenceEquals(current.Left, node) || ReferenceEquals(current.Right, node))
                 return current;
 
-            parent = current;
-            current = node.CompareTo(current) < 0
+            current = current.CompareTo(node) > 0
                 ? current.Left
                 : current.Right;
         }
