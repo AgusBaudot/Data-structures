@@ -26,15 +26,6 @@ public class MyALGraph<TKey>
     #region Vertex operations
 
     public bool AddVertex(TKey v) => _adjacency.TryAdd(v, new Dictionary<TKey, double>());
-    //{
-    //    if (_adjacency.ContainsKey(v))
-    //        return false;
-
-    //    _adjacency[v] = new Dictionary<TKey, double>();
-    //    return true;
-
-    //    //_adjacency.TryAdd
-    //}
 
     public bool RemoveVertex(TKey v)
     {
