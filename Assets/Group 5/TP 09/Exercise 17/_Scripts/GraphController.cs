@@ -8,6 +8,7 @@ public class GraphController : MonoBehaviour
     [Header("Prefabs & Parents")]
     public GameObject nodePrefab;
     public GameObject edgePrefab;
+    public GameObject edgeWeightPrefab;
     public Transform nodeParent;
     public Transform edgeParent;
 
@@ -45,7 +46,21 @@ public class GraphController : MonoBehaviour
 
     void CreateNode()
     {
-        Vector3 pos = Camera.main != null ? (Vector3)Random.insideUnitCircle * 3f : Vector3.zero;
+        Vector3 pos = new Vector3();
+        bool valid = true;
+        do
+        {
+            pos = Camera.main != null ? (Vector3)Random.insideUnitCircle * 3f : Vector3.zero;
+            if (Physics2D.OverlapCircleAll(pos, 0.5f).Length > 0)
+            {
+                //Colliding with something
+                valid = false;
+            }
+            else
+            {
+                valid = true;
+            }
+        } while (!valid);
         GameObject nodeObj = Instantiate(nodePrefab, pos, Quaternion.identity, nodeParent);
         var node = nodeObj.GetComponent<GraphNode>();
         node.Init(this);
@@ -118,7 +133,13 @@ public class GraphController : MonoBehaviour
         // Optionally, display the weight value in the scene
         var text = edgeObj.GetComponentInChildren<TMP_Text>();
         if (text != null)
-            text.text = weight.ToString("F1");
+        {
+            text.text = weight.ToString("F2");
+            //Location would be half point between 2 nodes.
+            //text.gameObject.transform.position += pos / 2;
+            Vector2 pos = to.transform.position - from.transform.position;
+            text.gameObject.transform.position = new Vector2(pos.x, text.gameObject.transform.position.y + pos.y / 2);
+        }
 
         _edgeObjects[key] = edgeObj;
     }
