@@ -17,34 +17,34 @@ public class PathResult
     public PathAlgorithm Algorithm { get; set; }
     public bool Found { get; set; }
     public List<Vector2Int> Path { get; set; } = new List<Vector2Int>();
-    public List<Vector2Int> Visited { get; set; } = new List<Vector2Int>();
-    public int NodesExpanded { get; set; } = 0;
-    public long LookupChecks { get; set; } = 0;
-    public long ElapsedMilliseconds { get; set; } = 0;
-    public double TotalCost { get; set; } = 0; // path cost (relevant to Dijkstra/A*)
+    public List<Vector2Int> Visited { get; set; } = new List<Vector2Int>(); //Amount of nodes visited. Increases when we push/enqueue a node (added to frontier).
+    public int NodesExpanded { get; set; } = 0; //Amount of nodes expanded (taken out of frontier and analized neighbors). Increases when node is popped/dequeued for processing.
+    public long LookupChecks { get; set; } = 0; //Times checked the lookup HashSet
+    public long ElapsedMilliseconds { get; set; } = 0; //Time elapsed from start to finish
+    public double TotalCost { get; set; } = 0; //path cost (relevant to Dijkstra/A*)
     public override string ToString()
     {
         return $"[{Algorithm}] Found: {Found}, Path length: {Path?.Count ?? 0}, Cost: {TotalCost:F2}, Visited: {Visited.Count}, NodesExpanded: {NodesExpanded}, LookupChecks: {LookupChecks}, Time(ms): {ElapsedMilliseconds}";
     }
 }
 
-/// <summary>
-/// Generic grid pathfinder: BFS, DFS, Dijkstra and A* (with optional cost function).
-/// </summary>
+///<summary>
+///Generic grid pathfinder: BFS, DFS, Dijkstra and A* (with optional cost function).
+///</summary>
 public static class Pathfinder
 {
-    /// <summary>
-    /// Single-call factory.
-    /// </summary>
+    ///<summary>
+    ///Single-call factory.
+    ///</summary>
     public static PathResult CalculatePath(Dictionary<Vector2Int, GridTile> grid, Vector2Int start, Vector2Int end, PathAlgorithm algo, bool allowDiagonals = false, Func<Vector2Int, double> costFunc = null)
     {
-        // Build hashset of walkable positions for O(1) checks
+        //Build hashset of walkable positions for O(1) checks
         var walkables = new HashSet<Vector2Int>();
         foreach (var tile in grid.Values)
             if (tile != null && tile.Walkable)
                 walkables.Add(tile.GridPosition);
 
-        // Quick invalid cases
+        //Quick invalid cases
         if (!walkables.Contains(start) || !walkables.Contains(end))
         {
             return new PathResult
@@ -71,9 +71,9 @@ public static class Pathfinder
         }
     }
 
-    /// <summary>
-    /// Run all algorithms (BFS, DFS, Dijkstra, A*) and return results list.
-    /// </summary>
+    ///<summary>
+    ///Run all algorithms (BFS, DFS, Dijkstra, A*) and return results list.
+    ///</summary>
     public static List<PathResult> RunAllAlgorithms(Dictionary<Vector2Int, GridTile> grid, Vector2Int start, Vector2Int end, bool allowDiagonals = false, Func<Vector2Int, double> costFunc = null)
     {
         var algos = new[] { PathAlgorithm.BFS, PathAlgorithm.DFS, PathAlgorithm.Dijkstra, PathAlgorithm.AStar };
@@ -294,7 +294,7 @@ public static class Pathfinder
 
         var dirs = GetDirections(allowDiagonals);
 
-        // compute conservative min cost over walkables to scale heuristic (admissible)
+        //compute conservative min cost over walkables to scale heuristic (admissible)
         double minCost = 1.0;
         try
         {
@@ -307,7 +307,7 @@ public static class Pathfinder
             minCost = 1.0;
         }
 
-        // g-score (cost from start), f-score = g + h
+        //g-score (cost from start), f-score = g + h
         var g = new Dictionary<Vector2Int, double>();
         var parent = new Dictionary<Vector2Int, Vector2Int>();
         var visited = new HashSet<Vector2Int>();
@@ -362,17 +362,17 @@ public static class Pathfinder
         return result;
     }
 
-    // admissible heuristic depending on connectivity
+    //admissible heuristic depending on connectivity
     private static double Heuristic(Vector2Int a, Vector2Int b, bool diag)
     {
         int dx = Math.Abs(a.x - b.x);
         int dy = Math.Abs(a.y - b.y);
         if (diag)
         {
-            // Chebyshev distance for 8-neighbour grid (admissible if cost per step >= 1)
+            //Chebyshev distance for 8-neighbour grid (admissible if cost per step >= 1)
             return Math.Max(dx, dy);
         }
-        // Manhattan for 4-neighbor
+        //Manhattan for 4-neighbor
         return dx + dy;
     }
     #endregion

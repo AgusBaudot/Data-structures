@@ -27,7 +27,16 @@ EditorBuildSettings:
     path: Assets/Group 5/TP 06/Exercise 11/Scenes/TP 06 BST.unity
     guid: 98c617425b5abb04cb5410948f0daed1
   - enabled: 1
-    path: Assets/Group 5/TP 07/Exercise 13/Scene/TP 08 Leaderboards.unity
+    path: Assets/Group 5/TP 07/Exercise 13/Scene/TP 07 Leaderboards.unity
     guid: b1eab7b399a85b74294fb6868ee9d6ee
+  - enabled: 1
+    path: Assets/Group 5/TP 08/Exercise 15/Scenes/TP 08 Inventory.unity
+    guid: 35c0f1b0599a135438642e22762166e3
+  - enabled: 1
+    path: Assets/Group 5/TP 09/Exercise 17/Scenes/TP 09 Spacial map.unity
+    guid: b4aeb0072b674e247a23c41d29211818
+  - enabled: 1
+    path: Assets/Group 5/TP 10/Exercise 18/Scenes/TP 10 Labyrinth.unity
+    guid: 28043dcc54ffc974aa5e08b6594ee2f9
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

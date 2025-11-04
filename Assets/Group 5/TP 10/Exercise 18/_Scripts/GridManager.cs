@@ -87,35 +87,7 @@ public class GridManager : MonoBehaviour
         {
             Debug.Log(path);
         }
-        // foreach (var kvp in mappedTiles.mappedPos)
-        // {
-        //     GridTile tile = GetTile(kvp.Key);
-        //     foreach (var neighbor in kvp.Value)
-        //     {
-        //         tile.SetNext(neighbor);
-        //     }
-        // }
     }
-
-    // private void SearchForSpawn(Vector2Int position)
-    // {
-    //     //Candidate is one of 4 adjacent tiles that is spawn tile.
-    //     var candidate = GetTile(position + Vector2Int.up);
-    //     if (candidate?.Type == GridTileType.Spawn)
-    //         candidate.SetNext(position);
-    //
-    //     candidate = GetTile(position + Vector2Int.right);
-    //     if (candidate?.Type == GridTileType.Spawn)
-    //         candidate.SetNext(position);
-    //
-    //     candidate = GetTile(position + Vector2Int.down);
-    //     if (candidate?.Type == GridTileType.Spawn)
-    //         candidate.SetNext(position);
-    //
-    //     candidate = GetTile(position + Vector2Int.left);
-    //     if (candidate?.Type == GridTileType.Spawn)
-    //         candidate.SetNext(position);
-    // }
 
     private void OnDrawGizmosSelected()
     {
