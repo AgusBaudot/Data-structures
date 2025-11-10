@@ -19,6 +19,7 @@ public class GraphController : MonoBehaviour
     public Button checkPathButton;
     public Toggle pathModeToggle;
     public TMP_Text resultText;
+    public RectTransform nodeSpawnRect;
 
     private MyALGraph<GameObject> _graph = new();
     private List<GraphNode> _nodes = new();
@@ -50,7 +51,7 @@ public class GraphController : MonoBehaviour
         bool valid = true;
         do
         {
-            pos = Camera.main != null ? (Vector3)Random.insideUnitCircle * 3f : Vector3.zero;
+            pos = Camera.main != null ? (Vector3)GetRandomPositionInRect(nodeSpawnRect) : Vector3.zero;
             if (Physics2D.OverlapCircleAll(pos, 0.5f).Length > 0)
             {
                 //Colliding with something
@@ -61,6 +62,7 @@ public class GraphController : MonoBehaviour
                 valid = true;
             }
         } while (!valid);
+        
         GameObject nodeObj = Instantiate(nodePrefab, pos, Quaternion.identity, nodeParent);
         var node = nodeObj.GetComponent<GraphNode>();
         node.Init(this);
@@ -227,5 +229,24 @@ public class GraphController : MonoBehaviour
         foreach (var n in pathSelection)
             n.Highlight(false);
         pathSelection.Clear();
+    }
+
+    private Vector2 GetRandomPositionInRect(RectTransform rect)
+    {
+        Rect r = rect.rect;
+        Vector2 localPos = new Vector2(
+            Random.Range(r.xMin, r.xMax),
+            Random.Range(r.yMin, r.yMax)
+        );
+
+        // position in world space of that rect-local point (on canvas plane)
+        Vector3 worldOnCanvas = rect.TransformPoint(localPos);
+
+        // convert that world pos to screen coords (works with overlay if cam == null)
+        Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(null, worldOnCanvas);
+
+        // convert screen -> world using your game camera; supply z distance from camera
+        Vector3 screenPosWithZ = new Vector3(screenPos.x, screenPos.y, -10);
+        return Camera.main.ScreenToWorldPoint(screenPosWithZ);
     }
 }

@@ -409,63 +409,116 @@ public class BSTVisualizer : MonoBehaviour
         var left = nodeType.GetProperty("Left")?.GetValue(node);
         var right = nodeType.GetProperty("Right")?.GetValue(node);
 
-        float leftW = ComputeSubtreeWidth(left);
-        float rightW = ComputeSubtreeWidth(right);
+        // If a child is missing treat its width as a leaf slot so space is reserved.
+        float leftW = left != null ? ComputeSubtreeWidth(left) : _leafSpacing;
+        float rightW = right != null ? ComputeSubtreeWidth(right) : _leafSpacing;
 
-        float width;
-        if (leftW <= 0 && rightW <= 0)
-        {
-            //leaf
-            width = _leafSpacing;
-        }
-        else
-        {
-            width = Math.Max(_leafSpacing, leftW + rightW);
-        }
+        // subtree width is at least the sum of both children (or leafSpacing for leaves)
+        float width = Math.Max(_leafSpacing, leftW + rightW);
 
         _subtreeWidth[node] = width;
         return width;
+        
+        // if (node == null) return 0f;
+        //
+        // Type nodeType = node.GetType();
+        // var left = nodeType.GetProperty("Left")?.GetValue(node);
+        // var right = nodeType.GetProperty("Right")?.GetValue(node);
+        //
+        // float leftW = ComputeSubtreeWidth(left);
+        // float rightW = ComputeSubtreeWidth(right);
+        //
+        // float width;
+        // if (leftW <= 0 && rightW <= 0)
+        // {
+        //     //leaf
+        //     width = _leafSpacing;
+        // }
+        // else
+        // {
+        //     width = Math.Max(_leafSpacing, leftW + rightW);
+        // }
+        //
+        // _subtreeWidth[node] = width;
+        // return width;
     }
 
     private void ComputePositionsRecursive(object node, int depth, ref float startX)
     {
         if (node == null) return;
-        
+
         Type nodeType = node.GetType();
         var left = nodeType.GetProperty("Left")?.GetValue(node);
         var right = nodeType.GetProperty("Right")?.GetValue(node);
 
         float width = _subtreeWidth.ContainsKey(node) ? _subtreeWidth[node] : _leafSpacing;
-        
-        // leaf case
-        if (left == null && right == null)
-        {
-            float center = startX + width / 2f;
-            _positions[node] = new Vector2(center * _horizontalSpacing, -depth * _verticalSpacing) + _rootOffset;
-            startX += width;
-            return;
-        }
 
-        // otherwise compute left and right first so startX advances
-        if (left != null)
-            ComputePositionsRecursive(left, depth + 1, ref startX);
+        // widths for children (reserve leaf slots if missing)
+        float leftW = left != null ? _subtreeWidth[left] : _leafSpacing;
+        float rightW = right != null ? _subtreeWidth[right] : _leafSpacing;
 
-        if (right != null)
-            ComputePositionsRecursive(right, depth + 1, ref startX);
-
-        // Determine leftmost and rightmost child unit positions
-        float leftMost = left != null ? _positions[left].x / _horizontalSpacing : startX;
-        float rightMost = right != null ? _positions[right].x / _horizontalSpacing : (startX);
-
-        float centerUnit;
-        if (left != null && right != null)
-            centerUnit = (leftMost + rightMost) / 2f;
-        else if (left != null)
-            centerUnit = _positions[left].x / _horizontalSpacing + (width - _subtreeWidth[left]) / 2f;
-        else //right != null
-            centerUnit = _positions[right].x / _horizontalSpacing - (width - _subtreeWidth[right]) / 2f;
+        // Node occupies [nodeStart, nodeStart + width)
+        float nodeStart = startX;
+        float centerUnit = nodeStart + width * 0.5f;
 
         _positions[node] = new Vector2(centerUnit * _horizontalSpacing, -depth * _verticalSpacing) + _rootOffset;
+
+        // Recurse into left using its subinterval [nodeStart, nodeStart + leftW)
+        float leftStart = nodeStart;
+        float leftCursor = leftStart;
+        if (left != null)
+            ComputePositionsRecursive(left, depth + 1, ref leftCursor);
+        else
+            leftCursor += leftW; // reserve space for a missing subtree
+
+        // Recurse into right using its subinterval [nodeStart + leftW, nodeStart + leftW + rightW)
+        float rightStart = nodeStart + leftW;
+        float rightCursor = rightStart;
+        if (right != null)
+            ComputePositionsRecursive(right, depth + 1, ref rightCursor);
+        else
+            rightCursor += rightW; // reserve space for a missing subtree
+
+        // Advance the parent's startX by the whole width so siblings don't overlap
+        startX = nodeStart + width;
+        
+        // if (node == null) return;
+        //
+        // Type nodeType = node.GetType();
+        // var left = nodeType.GetProperty("Left")?.GetValue(node);
+        // var right = nodeType.GetProperty("Right")?.GetValue(node);
+        //
+        // float width = _subtreeWidth.ContainsKey(node) ? _subtreeWidth[node] : _leafSpacing;
+        //
+        // // leaf case
+        // if (left == null && right == null)
+        // {
+        //     float center = startX + width / 2f;
+        //     _positions[node] = new Vector2(center * _horizontalSpacing, -depth * _verticalSpacing) + _rootOffset;
+        //     startX += width;
+        //     return;
+        // }
+        //
+        // // otherwise compute left and right first so startX advances
+        // if (left != null)
+        //     ComputePositionsRecursive(left, depth + 1, ref startX);
+        //
+        // if (right != null)
+        //     ComputePositionsRecursive(right, depth + 1, ref startX);
+        //
+        // // Determine leftmost and rightmost child unit positions
+        // float leftMost = left != null ? _positions[left].x / _horizontalSpacing : startX;
+        // float rightMost = right != null ? _positions[right].x / _horizontalSpacing : (startX);
+        //
+        // float centerUnit;
+        // if (left != null && right != null)
+        //     centerUnit = (leftMost + rightMost) / 2f;
+        // else if (left != null)
+        //     centerUnit = _positions[left].x / _horizontalSpacing + (width - _subtreeWidth[left]) / 2f;
+        // else //right != null
+        //     centerUnit = _positions[right].x / _horizontalSpacing - (width - _subtreeWidth[right]) / 2f;
+        //
+        // _positions[node] = new Vector2(centerUnit * _horizontalSpacing, -depth * _verticalSpacing) + _rootOffset;
     }
     
     private void CreateVisualsRecursive(object node, object parent)

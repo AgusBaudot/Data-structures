@@ -46,10 +46,10 @@ public class MyBST<T> where T : IComparable<T>
             {
                 current.SetLeft(value);
                 Count++;
+                return true;
             }
-            
-            else
-                InsertRecursively(current.Left, value);
+
+            return InsertRecursively(current.Left, value);
         }
 
         else
@@ -58,12 +58,11 @@ public class MyBST<T> where T : IComparable<T>
             {
                 current.SetRight(value);
                 Count++;
+                return true;
             }
             
-            else
-                InsertRecursively(current.Right, value);
+            return InsertRecursively(current.Right, value);
         }
-        return true;
     }
 
     public void Delete(T data) => Delete(GetNodeFromData(data));
@@ -163,7 +162,6 @@ public class MyBST<T> where T : IComparable<T>
 
         while (current != null)
         {
-            Debug.Log(current.Data);
             if (ReferenceEquals(current.Left, node) || ReferenceEquals(current.Right, node))
                 return current;
 

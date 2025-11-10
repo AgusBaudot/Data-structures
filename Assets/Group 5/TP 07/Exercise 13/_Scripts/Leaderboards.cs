@@ -2,9 +2,8 @@ using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.UI;
-
+using Random = System.Random;
 
 public class LeaderboardManager : MonoBehaviour
 {
@@ -44,11 +43,11 @@ public class LeaderboardManager : MonoBehaviour
     };
 
     private AVLTree<int> _scores = new AVLTree<int>();
-    private Dictionary<int, GameObject> texts = new Dictionary<int, GameObject>();
+    private Dictionary<int, GameObject> _texts = new Dictionary<int, GameObject>();
 
     private void Awake()
     {
-        // hook up UI callbacks (if buttons not wired in inspector)
+        //Hook up UI callbacks (if buttons not wired in inspector)
         if (insertButton != null) insertButton.onClick.AddListener(OnInsertClicked);
         if (deleteButton != null) deleteButton.onClick.AddListener(OnDeleteClicked);
         if (preorderButton != null) preorderButton.onClick.AddListener(OnPreorderClicked);
@@ -59,13 +58,13 @@ public class LeaderboardManager : MonoBehaviour
 
     private void Start()
     {
-        SeedRandomScores(seedCount);
+        SeedRandomScores();
         RefreshLeaderboardUI();
     }
 
     private void OnDestroy()
     {
-        // cleanup listeners to avoid possible memory leaks in editor
+        //Cleanup listeners to avoid possible memory leaks in editor
         if (insertButton != null)
             insertButton.onClick.RemoveListener(OnInsertClicked);
         if (deleteButton != null)
@@ -80,22 +79,29 @@ public class LeaderboardManager : MonoBehaviour
             levelorderButton.onClick.RemoveListener(OnLevelorderClicked);
     }
 
-    private void SeedRandomScores(int count)
+    private void SeedRandomScores()
     {
-        var rng = new System.Random();
-        while (_scores.Count < seedCount)
+        var rng = new Random();
+        int attempts = 0;
+        int maxAttempts = Mathf.Max(10, seedCount * 10); //Safety cap
+        
+        while (_scores.Count < seedCount && attempts < maxAttempts)
         {
+            attempts++;
+            
             int score = rng.Next(randomMin, randomMax + 1);
-            int name = rng.Next(0, 100);
-            _scores.Insert(score);
+            int name = rng.Next(0, names.Length);
+            
+            if (!_scores.Insert(score)) continue;
+            
             var go = Instantiate(textPrefab, content.transform);
-            texts[score] = go;
-
             go.GetComponent<TextMeshProUGUI>().text = $"Player: {names[name]}, score: {score.ToString()}.";
+            _texts[score] = go;
+            if (_scores.Count == seedCount) break;
         }
     }
 
-    // Called by Insert button
+    //Called by Insert button
     public void OnInsertClicked()
     {
         string text = scoreInput != null ? scoreInput.text : string.Empty;
@@ -111,19 +117,16 @@ public class LeaderboardManager : MonoBehaviour
             return;
         }
 
-        if (texts.TryGetValue(value, out var scoreText)) return;
+        if (_texts.ContainsKey(value)) return;
 
-        _scores.Insert(value);
-        // clear input for convenience
+        if (!_scores.Insert(value)) return;
+        
+        //Clear input for convenience
         if (scoreInput != null) scoreInput.text = string.Empty;
 
         var go = Instantiate(textPrefab, content.transform);
-        texts[value] = go;
-
-        var rng = new System.Random();
-        int name = rng.Next(0, 100);
-
-        go.GetComponent<TextMeshProUGUI>().text = $"Player: {names[name]}, score: {value.ToString()}.";
+        go.GetComponent<TextMeshProUGUI>().text = $"Player: {names[new Random().Next(names.Length)]}, score: {value}.";
+        _texts[value] = go;
 
         RefreshLeaderboardUI();
     }
@@ -143,24 +146,34 @@ public class LeaderboardManager : MonoBehaviour
         }
 
         _scores.Delete(value);
-        // clear input for convenience
+        
+        //Clear input for convenience
         if (scoreInput != null) scoreInput.text = string.Empty;
 
-        Destroy(texts[value]);
-        texts.Remove(value);
+        if (_texts.TryGetValue(value, out var go))
+        {
+            Destroy(go);
+            _texts.Remove(value);
+        }
 
         RefreshLeaderboardUI();
     }
 
     private void RefreshLeaderboardUI()
     {
+        int order = 0;
+        _scores.InOrderTraversal(v =>
+        {
+            _texts[v].transform.SetSiblingIndex(order);
+            order++;
+        });
     }
 
     #region Traversal button callbacks
 
     private void OnPreorderClicked()
     {
-        if (traversalOutputText == null) return;
+        //If (traversalOutputText == null) return;
         StringBuilder sb = new StringBuilder();
         bool first = true;
         _scores.PreOrderTraversal((v) =>
@@ -169,12 +182,13 @@ public class LeaderboardManager : MonoBehaviour
             sb.Append(v);
             first = false;
         });
-        traversalOutputText.text = $"Pre-order:\n{sb}";
+        //TraversalOutputText.text = $"Pre-order:\n{sb}";
+        Debug.Log($"Pre-order:\n{sb}");
     }
 
     private void OnInorderClicked()
     {
-        if (traversalOutputText == null) return;
+        //If (traversalOutputText == null) return;
         StringBuilder sb = new StringBuilder();
         bool first = true;
         _scores.InOrderTraversal((v) =>
@@ -183,12 +197,13 @@ public class LeaderboardManager : MonoBehaviour
             sb.Append(v);
             first = false;
         });
-        traversalOutputText.text = $"In-order (sorted ascending):\n{sb}";
+        //TraversalOutputText.text = $"In-order (sorted ascending):\n{sb}";
+        Debug.Log($"In-order (sorted ascending):\n{sb}");
     }
 
     private void OnPostorderClicked()
     {
-        if (traversalOutputText == null) return;
+        //If (traversalOutputText == null) return;
         StringBuilder sb = new StringBuilder();
         bool first = true;
         _scores.PostOrderTraversal((v) =>
@@ -197,19 +212,21 @@ public class LeaderboardManager : MonoBehaviour
             sb.Append(v);
             first = false;
         });
-        traversalOutputText.text = $"Post-order:\n{sb}";
+        //TraversalOutputText.text = $"Post-order:\n{sb}";
+        Debug.Log($"Post-order:\n{sb}");
     }
 
     private void OnLevelorderClicked()
     {
-        if (traversalOutputText == null) return;
+        //If (traversalOutputText == null) return;
         var nodes = LevelOrderValues();
-        traversalOutputText.text = $"Level-order:\n{string.Join(", ", nodes)}";
+        //TraversalOutputText.text = $"Level-order:\n{string.Join(", ", nodes)}";
+        Debug.Log($"Level-oder:\n{string.Join(", ", nodes)}");
     }
 
     #endregion
 
-    // Level-order traversal implemented locally using the BSTNode<int> type.
+    //Level-order traversal implemented locally using the BSTNode<int> type.
     private List<int> LevelOrderValues()
     {
         var result = new List<int>();
