@@ -1855,7 +1855,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodePrefab: {fileID: 4924748042774957608, guid: f59b52e88264abc4ba5745e5a57475bd, type: 3}
   edgePrefab: {fileID: 922102580197852047, guid: 6cb888617c7e42d45ade89f5c1a3fc5f, type: 3}
-  edgeWeightPrefab: {fileID: 0}
+  edgeWeightPrefab: {fileID: 7422437206158173275, guid: 6c8b139a389e31747a18edd7bddc90a8, type: 3}
   nodeParent: {fileID: 1849203031}
   edgeParent: {fileID: 781954825}
   addNodeButton: {fileID: 272342723}

@@ -601,10 +601,10 @@ MonoBehaviour:
   _inputField: {fileID: 47257445}
   _treeContainer: {fileID: 1256771117}
   _nodePrefab: {fileID: 9067321274835728447, guid: b62d66ff4bf6e354fb96de4adddeba56, type: 3}
-  _horizontalSpacing: 160
-  _verticalSpacing: 120
-  _leafSpacing: 1.5
-  _rootOffset: {x: 0, y: -450}
+  _horizontalSpacing: 260
+  _verticalSpacing: 100
+  _leafSpacing: 1
+  _rootOffset: {x: 0, y: -300}
 --- !u!1 &101134594
 GameObject:
   m_ObjectHideFlags: 0
@@ -779,7 +779,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Strings
+  m_text: Ints
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2164,7 +2164,7 @@ MonoBehaviour:
   m_Placeholder: {fileID: 0}
   m_ItemText: {fileID: 363596852}
   m_ItemImage: {fileID: 0}
-  m_Value: 0
+  m_Value: 1
   m_MultiSelect: 0
   m_Options:
     m_Options:

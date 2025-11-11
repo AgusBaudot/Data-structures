@@ -39,15 +39,17 @@ public class BSTVisualizer : MonoBehaviour
 
     #endregion
 
-    // Holds the current MyBST<T> instance boxed as object
+    //Holds the current MyBST<T> instance boxed as object
     private object _currentTree;
 
     private void Start()
     {
         SwitchTree();
+        //Populate with default, task's tree.
+        AddRangeFromInput("20, 10, 1, 26, 35, 40, 18, 12, 15, 14, 30, 23");
     }
 
-    // Called when user changes the type dropdown
+    //Called when user changes the type dropdown
     public void SwitchTree()
     {
         switch (_typeDropdown.value)
@@ -61,7 +63,7 @@ public class BSTVisualizer : MonoBehaviour
         UpdateTree();
     }
 
-    // Called by UI button to execute the selected method
+    //Called by UI button to execute the selected method
     public void GetInput()
     {
         try
@@ -278,7 +280,7 @@ public class BSTVisualizer : MonoBehaviour
         {
             Vector2 parentPos = _positions[root];
             // child should be under-left of parent: x - horizontalSpacing, y - verticalSpacing
-            Vector2 desiredLeftPos = parentPos + new Vector2(-_horizontalSpacing, -_verticalSpacing);
+            Vector2 desiredLeftPos = parentPos + new Vector2(-_horizontalSpacing * 0.5f, -_verticalSpacing);
             Vector2 currentLeftPos = _positions[left];
             Vector2 delta = desiredLeftPos - currentLeftPos;
             if (delta != Vector2.zero) ShiftSubtree(left, delta);
@@ -288,7 +290,7 @@ public class BSTVisualizer : MonoBehaviour
         {
             Vector2 parentPos = _positions[root];
             // child should be under-right of parent: x + horizontalSpacing, y - verticalSpacing
-            Vector2 desiredRightPos = parentPos + new Vector2(_horizontalSpacing, -_verticalSpacing);
+            Vector2 desiredRightPos = parentPos + new Vector2(_horizontalSpacing * 0.5f, -_verticalSpacing);
             Vector2 currentRightPos = _positions[right];
             Vector2 delta = desiredRightPos - currentRightPos;
             if (delta != Vector2.zero) ShiftSubtree(right, delta);
@@ -409,12 +411,13 @@ public class BSTVisualizer : MonoBehaviour
         var left = nodeType.GetProperty("Left")?.GetValue(node);
         var right = nodeType.GetProperty("Right")?.GetValue(node);
 
-        // If a child is missing treat its width as a leaf slot so space is reserved.
+        // compute children widths (reserve 1 unit for missing leaves)
         float leftW = left != null ? ComputeSubtreeWidth(left) : _leafSpacing;
         float rightW = right != null ? ComputeSubtreeWidth(right) : _leafSpacing;
 
-        // subtree width is at least the sum of both children (or leafSpacing for leaves)
-        float width = Math.Max(_leafSpacing, leftW + rightW);
+        // subtree width = sum of children (no unnecessary extra slack)
+        float width = leftW + rightW;
+        if (width <= 0f) width = _leafSpacing;
 
         _subtreeWidth[node] = width;
         return width;
@@ -425,19 +428,12 @@ public class BSTVisualizer : MonoBehaviour
         // var left = nodeType.GetProperty("Left")?.GetValue(node);
         // var right = nodeType.GetProperty("Right")?.GetValue(node);
         //
-        // float leftW = ComputeSubtreeWidth(left);
-        // float rightW = ComputeSubtreeWidth(right);
+        // //If a child is missing treat its width as a leaf slot so space is reserved.
+        // float leftW = left != null ? ComputeSubtreeWidth(left) : _leafSpacing;
+        // float rightW = right != null ? ComputeSubtreeWidth(right) : _leafSpacing;
         //
-        // float width;
-        // if (leftW <= 0 && rightW <= 0)
-        // {
-        //     //leaf
-        //     width = _leafSpacing;
-        // }
-        // else
-        // {
-        //     width = Math.Max(_leafSpacing, leftW + rightW);
-        // }
+        // //Subtree width is at least the sum of both children (or leafSpacing for leaves)
+        // float width = Math.Max(_leafSpacing, leftW + rightW);
         //
         // _subtreeWidth[node] = width;
         // return width;
@@ -451,36 +447,41 @@ public class BSTVisualizer : MonoBehaviour
         var left = nodeType.GetProperty("Left")?.GetValue(node);
         var right = nodeType.GetProperty("Right")?.GetValue(node);
 
-        float width = _subtreeWidth.ContainsKey(node) ? _subtreeWidth[node] : _leafSpacing;
-
-        // widths for children (reserve leaf slots if missing)
-        float leftW = left != null ? _subtreeWidth[left] : _leafSpacing;
-        float rightW = right != null ? _subtreeWidth[right] : _leafSpacing;
-
-        // Node occupies [nodeStart, nodeStart + width)
-        float nodeStart = startX;
-        float centerUnit = nodeStart + width * 0.5f;
-
-        _positions[node] = new Vector2(centerUnit * _horizontalSpacing, -depth * _verticalSpacing) + _rootOffset;
-
-        // Recurse into left using its subinterval [nodeStart, nodeStart + leftW)
-        float leftStart = nodeStart;
-        float leftCursor = leftStart;
+        // Post-order: compute children first so their positions exist
         if (left != null)
-            ComputePositionsRecursive(left, depth + 1, ref leftCursor);
-        else
-            leftCursor += leftW; // reserve space for a missing subtree
-
-        // Recurse into right using its subinterval [nodeStart + leftW, nodeStart + leftW + rightW)
-        float rightStart = nodeStart + leftW;
-        float rightCursor = rightStart;
+            ComputePositionsRecursive(left, depth + 1, ref startX);
         if (right != null)
-            ComputePositionsRecursive(right, depth + 1, ref rightCursor);
-        else
-            rightCursor += rightW; // reserve space for a missing subtree
+            ComputePositionsRecursive(right, depth + 1, ref startX);
 
-        // Advance the parent's startX by the whole width so siblings don't overlap
-        startX = nodeStart + width;
+        float xPos;
+
+        // both children: center between them
+        if (left != null && right != null)
+        {
+            float lx = _positions[left].x;
+            float rx = _positions[right].x;
+            xPos = (lx + rx) * 0.5f;
+        }
+        // only left child: place slightly to the right of left child
+        else if (left != null)
+        {
+            float lx = _positions[left].x;
+            xPos = lx + _horizontalSpacing * 0.5f;
+        }
+        // only right child: place slightly to the left of right child
+        else if (right != null)
+        {
+            float rx = _positions[right].x;
+            xPos = rx - _horizontalSpacing * 0.5f;
+        }
+        else
+        {
+            // leaf: place at next available unit slot
+            xPos = startX * _horizontalSpacing;
+            startX += _leafSpacing; // advance the unit cursor
+        }
+
+        _positions[node] = new Vector2(xPos, -depth * _verticalSpacing) + _rootOffset;
         
         // if (node == null) return;
         //
@@ -490,35 +491,34 @@ public class BSTVisualizer : MonoBehaviour
         //
         // float width = _subtreeWidth.ContainsKey(node) ? _subtreeWidth[node] : _leafSpacing;
         //
-        // // leaf case
-        // if (left == null && right == null)
-        // {
-        //     float center = startX + width / 2f;
-        //     _positions[node] = new Vector2(center * _horizontalSpacing, -depth * _verticalSpacing) + _rootOffset;
-        //     startX += width;
-        //     return;
-        // }
+        // //Widths for children (reserve leaf slots if missing)
+        // float leftW = left != null ? _subtreeWidth[left] : _leafSpacing;
+        // float rightW = right != null ? _subtreeWidth[right] : _leafSpacing;
         //
-        // // otherwise compute left and right first so startX advances
-        // if (left != null)
-        //     ComputePositionsRecursive(left, depth + 1, ref startX);
-        //
-        // if (right != null)
-        //     ComputePositionsRecursive(right, depth + 1, ref startX);
-        //
-        // // Determine leftmost and rightmost child unit positions
-        // float leftMost = left != null ? _positions[left].x / _horizontalSpacing : startX;
-        // float rightMost = right != null ? _positions[right].x / _horizontalSpacing : (startX);
-        //
-        // float centerUnit;
-        // if (left != null && right != null)
-        //     centerUnit = (leftMost + rightMost) / 2f;
-        // else if (left != null)
-        //     centerUnit = _positions[left].x / _horizontalSpacing + (width - _subtreeWidth[left]) / 2f;
-        // else //right != null
-        //     centerUnit = _positions[right].x / _horizontalSpacing - (width - _subtreeWidth[right]) / 2f;
+        // //Node occupies [nodeStart, nodeStart + width)
+        // float nodeStart = startX;
+        // float centerUnit = nodeStart + width * 0.5f;
         //
         // _positions[node] = new Vector2(centerUnit * _horizontalSpacing, -depth * _verticalSpacing) + _rootOffset;
+        //
+        // //Recurse into left using its subinterval [nodeStart, nodeStart + leftW)
+        // float leftStart = nodeStart;
+        // float leftCursor = leftStart;
+        // if (left != null)
+        //     ComputePositionsRecursive(left, depth + 1, ref leftCursor);
+        // else
+        //     leftCursor += leftW; //Reserve space for a missing subtree
+        //
+        // //Recurse into right using its subinterval [nodeStart + leftW, nodeStart + leftW + rightW)
+        // float rightStart = nodeStart + leftW;
+        // float rightCursor = rightStart;
+        // if (right != null)
+        //     ComputePositionsRecursive(right, depth + 1, ref rightCursor);
+        // else
+        //     rightCursor += rightW; //Reserve space for a missing subtree
+        //
+        // //Advance the parent's startX by the whole width so siblings don't overlap
+        // startX = nodeStart + width;
     }
     
     private void CreateVisualsRecursive(object node, object parent)
@@ -532,10 +532,6 @@ public class BSTVisualizer : MonoBehaviour
 
         // Instantiate node prefab
         RectTransform rt = InstantiateNode(node, data?.ToString() ?? "null", _positions[node]);
-
-        // Create connector from parent to this node
-        // if (parent != null && _nodeToRect.TryGetValue(parent, out var parentRt))
-        //     CreateConnector(parentRt, rt);
 
         // recurse
         CreateVisualsRecursive(left, node);
