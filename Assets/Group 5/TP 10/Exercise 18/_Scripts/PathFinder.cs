@@ -6,8 +6,8 @@ using UnityEngine;
 
 public enum PathAlgorithm
 {
-    BFS,
     DFS,
+    BFS,
     Dijkstra,
     AStar
 }
