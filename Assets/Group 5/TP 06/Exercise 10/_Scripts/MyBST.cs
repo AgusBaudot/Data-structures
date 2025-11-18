@@ -130,7 +130,7 @@ public class MyBST<T> where T : IComparable<T>
 
     protected int GetHeight(BSTNode<T> node)
     {
-        if (node == null) return 0; //Return -1 if edge based instead of node based.
+        if (node == null) return -1; //Return 0 if node based instead of edge based.
         int left = GetHeight(node.Left);
         int right = GetHeight(node.Right);
 

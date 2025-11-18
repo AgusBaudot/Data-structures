@@ -24,6 +24,7 @@ public class GridManager : MonoBehaviour
 
     private Dictionary<Vector2Int, GridTile> _tiles;
     private TileBase _currentTile;
+    private bool _isPainting;
     private List<Vector2Int> _greenPath = new();
 
     private void Awake()
@@ -36,6 +37,12 @@ public class GridManager : MonoBehaviour
     private void Update()
     {
         if (Input.GetMouseButtonDown(0))
+            _isPainting = true;
+
+        if (Input.GetMouseButtonUp(0))
+            _isPainting = false;
+
+        if (_isPainting)
         {
             if (_currentTile == null)
                 throw new InvalidOperationException("Can't paint without tile selected.");
@@ -220,23 +227,24 @@ public class GridManager : MonoBehaviour
         //Paint green visually (Keep them the same logically for further path calculations).
         foreach (Vector2Int tilePos in _greenPath)
         {
-            if (_tiles[tilePos].Type == GridTileType.Spawn || _tiles[tilePos].Type == GridTileType.Goal) continue;
+            if (_tiles[tilePos].Type != GridTileType.Walkable) continue;
             //Update visually.
             tilemap.SetTile((Vector3Int)tilePos, pathTile);
         }
     }
 
-    private void PaintWhite()
+    public void PaintWhite()
     {
         if (_greenPath.Count == 0) return;
         foreach (Vector2Int tilePos in _greenPath)
         {
-            if (_tiles[tilePos].Type == GridTileType.Spawn || _tiles[tilePos].Type == GridTileType.Goal) continue;
+            if (_tiles[tilePos].Type != GridTileType.Walkable) continue;
             //Update visually.
             tilemap.SetTile((Vector3Int)tilePos, walkableTile);
             //Update logically.
             _tiles[tilePos].SetType(GridTileType.Walkable);
         }
+        _greenPath.Clear();
     }
 
     private void HandleButtonClick(PaintButton button)
