@@ -127,7 +127,7 @@ public static class Pathfinder
                 result.Visited.Add(nb);
                 q.Enqueue(nb);
 
-                if (nb == end)
+                if (nb == end) //Early exit optimization.
                 {
                     result.Found = true;
                     result.Path = ReconstructPath(parent, start, end);
@@ -166,25 +166,36 @@ public static class Pathfinder
         var visited = new HashSet<Vector2Int>();
 
         stack.Push(start);
-        visited.Add(start);
-        result.LookupChecks++;
-        result.Visited.Add(start);
 
         while (stack.Count > 0)
         {
             var cur = stack.Pop();
+
+            if (visited.Contains(cur)) continue;
+
+            visited.Add(cur);
+            result.Visited.Add(cur);
+            
             result.NodesExpanded++;
+
+            if (cur == end)
+            {
+                result.Found = true;
+                result.Path = ReconstructPath(parent, start, end);
+                result.ElapsedMilliseconds = sw.ElapsedMilliseconds;
+                result.TotalCost = result.Path.Count > 0 ? result.Path.Count - 1 : 0;
+                return result;
+            }
 
             for (int i = dirs.Length - 1; i >= 0; i--)
             {
                 var nb = cur + dirs[i];
                 result.LookupChecks++;
+                
                 if (!walkables.Contains(nb)) continue;
                 if (visited.Contains(nb)) continue;
 
-                visited.Add(nb);
                 parent[nb] = cur;
-                result.Visited.Add(nb);
                 stack.Push(nb);
 
                 if (nb == end)
@@ -276,7 +287,7 @@ public static class Pathfinder
     #endregion
 
     #region A*
-    public static PathResult AStar(Dictionary<Vector2Int, GridTile> grid, HashSet<Vector2Int> walkables, Vector2Int start, Vector2Int end, bool allowDiagonals = false, Func<Vector2Int, double> costFunc = null)
+    public static PathResult AStar(Dictionary<Vector2Int, GridTile> grid, HashSet<Vector2Int> walkables, Vector2Int start, Vector2Int end, bool allowDiagonals = false, Func<Vector2Int, double> costFunc = null, double lowestEdgeCost = 1.0)
     {
         var sw = Stopwatch.StartNew();
         var result = new PathResult { Algorithm = PathAlgorithm.AStar };
@@ -290,47 +301,38 @@ public static class Pathfinder
             return result;
         }
 
-        costFunc ??= (pos => 1.0);
-
+        costFunc ??= pos => 1.0;
         var dirs = GetDirections(allowDiagonals);
 
-        //compute conservative min cost over walkables to scale heuristic (admissible)
-        double minCost = 1.0;
-        try
-        {
-            var candidates = walkables.Select(p => costFunc(p));
-            if (candidates.Any())
-                minCost = Mathf.Max(0.000001f, (float)candidates.Min());
-        }
-        catch
-        {
-            minCost = 1.0;
-        }
-
-        //g-score (cost from start), f-score = g + h
+        //g-score: cost form start to current node
         var g = new Dictionary<Vector2Int, double>();
         var parent = new Dictionary<Vector2Int, Vector2Int>();
         var visited = new HashSet<Vector2Int>();
-
         var pq = new SimplePriorityQueue<Vector2Int, double>();
 
+        //Initialize start
         g[start] = 0;
-        double hstart = Heuristic(start, end, allowDiagonals) * minCost;
-        pq.Enqueue(start, g[start] + hstart);
+        //Scale heuristic by lowestEdgeCost to ensure admissibility
+        double hStart = Heuristic(start, end, allowDiagonals) * lowestEdgeCost;
+        pq.Enqueue(start, hStart);
 
         while (pq.Count > 0)
         {
             var (cur, _) = pq.DequeueWithPriority();
+            
+            //Standard closed-set check.
             if (visited.Contains(cur)) continue;
             visited.Add(cur);
+            
             result.NodesExpanded++;
             result.Visited.Add(cur);
 
+            //Goal check
             if (cur == end)
             {
                 result.Found = true;
                 result.Path = ReconstructPath(parent, start, end);
-                result.TotalCost = g.ContainsKey(end) ? g[end] : 0;
+                result.TotalCost = g[end];
                 result.ElapsedMilliseconds = sw.ElapsedMilliseconds;
                 return result;
             }
@@ -341,16 +343,22 @@ public static class Pathfinder
             {
                 var nb = cur + d;
                 result.LookupChecks++;
+                
                 if (!walkables.Contains(nb)) continue;
+                if (visited.Contains(nb)) continue;
 
                 double moveCost = costFunc(nb);
                 double tentativeG = curG + moveCost;
 
+                //Check if we found a cheaper path to this neighbor
                 if (!g.TryGetValue(nb, out var knownG) || tentativeG < knownG)
                 {
                     g[nb] = tentativeG;
                     parent[nb] = cur;
-                    double f = tentativeG + Heuristic(nb, end, allowDiagonals) * minCost;
+                    //Calculate f = g + h
+                    //We multiply h by lowestEdgeCost to ensure we don't overestimate distance
+                    double f = tentativeG + Heuristic(nb, end, allowDiagonals) * lowestEdgeCost;
+                    
                     pq.Enqueue(nb, f);
                 }
             }
@@ -385,10 +393,10 @@ public static class Pathfinder
         {
             return new[]
             {
-                new Vector2Int(0, 1),
-                new Vector2Int(1, 0),
-                new Vector2Int(0, -1),
-                new Vector2Int(-1, 0)
+                Vector2Int.up,
+                Vector2Int.right,
+                Vector2Int.down,
+                Vector2Int.left
             };
         }
         else

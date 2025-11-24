@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -17,7 +18,10 @@ public class GridManager : MonoBehaviour
 
     [Header("Buttons")] [SerializeField] private PaintButton[] _buttons;
 
-    [Header("UI")] [SerializeField] private TMP_Dropdown _dropdown;
+    [Header("UI")]
+    [SerializeField] private TMP_Dropdown _dropdown;
+    [SerializeField] private TextMeshProUGUI _failedText;
+    [SerializeField] private GameObject _runner;
     
     public GridTile SpawnTile { get; private set; }
     public GridTile GoalTile { get; private set; }
@@ -32,6 +36,8 @@ public class GridManager : MonoBehaviour
         BuildGridFromTilemap();
         foreach (PaintButton btn in _buttons)
             btn.Clicked += HandleButtonClick;
+		
+        _failedText.enabled = false;
     }
 
     private void Update()
@@ -197,13 +203,17 @@ public class GridManager : MonoBehaviour
         if (GoalTile == null || SpawnTile == null)
         {
             Debug.LogError("GridManager: No goal or spawn tile found!");
+            _failedText.enabled = true;
             return;
         }
 
+        _failedText.enabled = false;
         PathAlgorithm algo = (PathAlgorithm)_dropdown.value;
         var result = Pathfinder.CalculatePath(_tiles, SpawnTile.GridPosition, GoalTile.GridPosition, algo);
+		if (!result.Found) 
+			_failedText.enabled = true;
         Debug.Log(result);
-        PaintGreen(result);
+        StartCoroutine(PaintGreen(result));
     }
 
     //Called by UI
@@ -216,13 +226,14 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    private void PaintGreen(PathResult result)
+    private IEnumerator PaintGreen(PathResult result)
     {
         //Reset previous gren path before painting current.
         PaintWhite();
         
         //Cache this path for cleanup later.
         _greenPath = result.Path;
+        _runner.SetActive(true);
         
         //Paint green visually (Keep them the same logically for further path calculations).
         foreach (Vector2Int tilePos in _greenPath)
@@ -230,7 +241,11 @@ public class GridManager : MonoBehaviour
             if (_tiles[tilePos].Type != GridTileType.Walkable) continue;
             //Update visually.
             tilemap.SetTile((Vector3Int)tilePos, pathTile);
+            _runner.transform.position = tilePos + Vector2.one / 2;
+            yield return new WaitForSeconds(1);
         }
+
+        _runner.SetActive(false);
     }
 
     public void PaintWhite()
