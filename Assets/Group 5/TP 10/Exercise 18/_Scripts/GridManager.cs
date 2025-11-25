@@ -21,7 +21,11 @@ public class GridManager : MonoBehaviour
     [Header("UI")]
     [SerializeField] private TMP_Dropdown _dropdown;
     [SerializeField] private TextMeshProUGUI _failedText;
+    
+    [Header("Animation")]
     [SerializeField] private GameObject _runner;
+    [Range(0, 1), Tooltip("Speed of the animation, 1 being slow and 0 being no animation")]
+    [SerializeField] private float _speed;
     
     public GridTile SpawnTile { get; private set; }
     public GridTile GoalTile { get; private set; }
@@ -242,7 +246,7 @@ public class GridManager : MonoBehaviour
             //Update visually.
             tilemap.SetTile((Vector3Int)tilePos, pathTile);
             _runner.transform.position = tilePos + Vector2.one / 2;
-            yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(_speed);
         }
 
         _runner.SetActive(false);

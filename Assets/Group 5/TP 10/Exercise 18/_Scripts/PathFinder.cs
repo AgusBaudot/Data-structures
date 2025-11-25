@@ -265,8 +265,11 @@ public static class Pathfinder
             {
                 var nb = cur + d;
                 result.LookupChecks++;
+                
                 if (!walkables.Contains(nb)) continue;
-
+                //If this node was finalized, don't bother calculating costs again.
+                if (visited.Contains(nb)) continue;
+                
                 double moveCost = costFunc(nb);
                 double candidate = curDist + moveCost;
 
@@ -495,9 +498,7 @@ public static class Pathfinder
 
         private void Swap(int a, int b)
         {
-            var tmp = _data[a];
-            _data[a] = _data[b];
-            _data[b] = tmp;
+            (_data[a], _data[b]) = (_data[b], _data[a]);
         }
     }
     #endregion

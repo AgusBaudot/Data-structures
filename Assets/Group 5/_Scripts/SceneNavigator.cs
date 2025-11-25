@@ -11,6 +11,9 @@ public class SceneNavigator : MonoBehaviour
         
         if (Input.GetKeyDown(KeyCode.LeftArrow) &&  SceneManager.GetActiveScene().buildIndex > 0)
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+            SceneManager.LoadScene("Main menu");
     }
 }
 
